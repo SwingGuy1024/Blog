@@ -50,9 +50,9 @@ Do we really know this? Let's put aside the fact that there are very rare record
 
 This will draw outrageous but silly objections from other developers. They'll think you're assuming that people can live beyond a million years old. But you're not making that assumption. You're not assuming anything. You're not even assuming the data is valid. And more important, you now have a more generic method that will work for any kind of Integer data. The method will work for for file sizes as easily as people's ages. However, a better approach would be to initialize min and max to the first element of the collection, which is less likely to draw outrage from other developers.
 
-The point is that, with a minor change, the code can't fail. If our data is invalid, this will let us know. The assumptions we made about people's ages offer us no advantage. And yeah, those assumptions are probably right, and the data will nearly always be valid. But do we gain anything by making those assumptions? 
+The point is that, with a minor change, you can abandon your unnecessary assumption, and your code can't fail. If your data is invalid, you'll still get a correct range, so you'll know. The assumptions we made about people's ages offer us no advantage. And yeah, those assumptions are probably right, and the data will nearly always be valid. But do we gain anything by making those assumptions? 
 
-Also, the change that takes us from *usually* works to *always* works was effortless. And yes, I've seen this issue come up in an actual project, where birth years were assumed to have 2 digits, but were being entered with 4 digits, so everyone was about 2000 years old. *Never make an assumption that you don't need to make.*
+Also, the change that takes us from *usually* works to *always* works was effortless. And yes, I've seen this issue come up in an actual project, where birth years were assumed to have 4 digits, but were being entered with 2 digits, so everyone was about 2000 years old. *Never make an assumption that you don't need to make.*
 
 Here's a better version of the method that makes no assumptions, and can work with any data set. It will calculate the range of file sizes as easily as people's ages.
 
@@ -74,9 +74,9 @@ Here's a better version of the method that makes no assumptions, and can work wi
     
 What assumptions am I no longer making?
 * I'm not assuming the data represents people's ages.
-* I'm not assuming the date is in a list.
+* I'm not assuming the data is in a List structure.
 * I'm not assuming the data is valid.
-* I'm not assuming the list has data.
+* I'm not assuming the list even has data.
 
 Here we have a more robust method. Now this method can be used with any dataset. 
 
@@ -97,3 +97,5 @@ Here's an example. Some developers take the view that you should ensure your cod
 At first, it looks like this code is conforming to the nitpicking principle. They're catching a bug that's very easy to catch, to ensure that bad input won't cause an exception to be thrown. But is that what happens? Actually, if `widget` is null, the method won't work, regardless of whether you test it for null or not. You won't get an exception, but you also won't prevent a bug. You certainly won't make the method more reliable. All you will accomplish is to hide the bug. The exception that would get thrown without this test has a purpose. It notifies you that there's a bug in your code somewhere.
 
 The Nitpicking Principle encourages you to write code that will always behave properly. But *the proper behavior of a method that gets invalid data structures is to throw an exception.* 
+
+The `determineRange()` example above will throw an exception if the supplied `Iterable` contains no data. This is intentional. And it's reasonable, since there's no Range that makes sense for list with no data. 
