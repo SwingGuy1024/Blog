@@ -82,7 +82,7 @@ Here we have a more robust method. Now this method can be used with any dataset.
 
 How useful is this change, when we're very unlikely to see this method fail? Think back to the example from the health clinic that aims for 99.95% instead of just 99.5%. By itself, this change really doesn't help reliability much. But it also doesn't cost much. It's marginally more reliable. But if all your code is written to be marginally more reliable, the cumulative effect can become very noticiable.
 
-# Caveat
+### Caveat
 
 This principle should never be used to hide bugs.
 
