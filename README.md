@@ -99,3 +99,5 @@ At first, it looks like this code is conforming to the nitpicking principle. The
 The Nitpicking Principle encourages you to write code that will always behave properly. But *the proper behavior of a method that gets invalid data structures is to throw an exception.* 
 
 The `determineRange()` example above will throw an exception if the supplied `Iterable` contains no data. This is intentional. And it's reasonable, since there's no Range that makes sense for list with no data. 
+
+I'm very down on the idea that you should suppress exceptions in production code. The way to prevent exceptions in production is to fix your bugs.
