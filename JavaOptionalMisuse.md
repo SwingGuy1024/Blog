@@ -43,7 +43,9 @@ What's going on here? One lines 2 and 3, the coder is taking two lines to do a s
 
 The first use is needlessly verbose, and seems to be done just to avoid ever using the `null` keyword in the code, as if it's use is now taboo. But the second use of Optional is more interesting. It's necessary not because they're doing functional programming, but because someone wrote a method that takes an Optional as a parameter.
 
-Why would anyone do this? Probably because Optional is being used to address a flaw in the language design. The flaw is this: There's no way to specify which of an API's parameters and return values are allowed to be null. It may be mentioned in the javadocs, but most developers don't even write javadocs for their code, and not many will check the javadocs as they write. So this leads to a lot of code like this:
+Why would anyone do this? Probably because Optional is being used to address a flaw in the language design. I call this the Nullness Flaw, and it's responsible for much of the misuse of Java's Optional class.
+## The Nullness Flaw
+The Nullness Flaw is this: There's no way to specify which of an API's parameters and return values are allowed to be null. It may be mentioned in the javadocs, but most developers don't even write javadocs for their code, and not many will check the javadocs as they write. So this leads to a lot of code like this:
 
     void someMethod(Widget widget, List<Integer> data) {
       if (widget != null) {
@@ -53,7 +55,7 @@ Why would anyone do this? Probably because Optional is being used to address a f
     
 This was done everywhere on a past project I worked on, and the ironic thing was that widget couldn't possibly be null here, because it had already been validated the same way by the method that calls this, where it also couldn't be null for the same reason. Once I checked a value in a debugger and found out that it has been repeatedly checked for null nine times up the call stack before ever reaching the method I was debugging. 
 
-This is a very bad practice, because it hides bugs. If `widget` is null here, the method will still fail, but no exception will be thrown. In fact, the purpose of this is to prevent exceptions from ever getting thrown in production code, as if this prevents bugs. (It doesn't) Java's exception class was written to include a detailed stack trace even when not running in debug mode, which was one of many improvements over C++, but this coding practice throws all this information away, just to create the illusion that their code doesn't have bugs.
+This is a very bad practice, because it hides bugs. If `widget` is null here, the method will still fail, but no exception will be thrown. In fact, the purpose of this is to prevent exceptions from ever getting thrown in production code, as if this prevents bugs. (It doesn't.) Java's exception class was written to include a detailed stack trace even when not running in debug mode, which was one of many improvements over C++, but this coding practice throws all this useful information away, just to create the illusion that their code doesn't have bugs. And the customer aren't fooled. They notice when an operation fails to do anything.
 
 I think there was a real thirst to solve this flaw in Java, because so many people saw the new Optional class as a way to add clarity to APIs. This is a laudable goal, but it's not why Optional was created. And it's a bad way to accomplish this. 
 
@@ -67,7 +69,7 @@ I have been using a very good solution to this API flaw for several years now, b
         process(widget, data);
     }
 
-The IDE will then check the code that calls this method to make sure the value can't be null, and generates an inspection if it gets called incorrectly. IntelliJ also includes a `@Contract` annotation that lets you specify under what conditions a method may return null. I have found this to be a very powerful solution to the problem, but the chief drawback to this is that it only works when using the Intellij IDE. When I'm on a team that has standardized on Eclipse, Netbeans, or some other IDE, I'm the only one who can see the inspection failures.
+The IDE will then check the code that calls this method to make sure the value can't be null, and generates an inspection failure if it gets called incorrectly. IntelliJ also includes a `@Contract` annotation that lets you specify under what conditions a method may return null. I have found this to be a very powerful solution to the problem, but the chief drawback to this is that it only works when using the Intellij IDE. When I'm on a team that has standardized on Eclipse, Netbeans, or some other IDE, I'm the only one who can see the inspection failures.
 
 I've gotten strange pushback against this approach. Most commonly I get the claim that we shouldn't rely on an external tool. I find this a strange argument, since the annotations provide an additional level of checking for our code. So for Eclipse users, there's may be no advantage to using these annotations, but there's no drawback either. Annotations were designed with the understanding that the compiler will ignore any annotations that it doesn't understand, to prevent their use from creating a dependency.
 
@@ -75,7 +77,7 @@ Fortunately, IntelliJ can be configured to use other annotations for the same pu
 
 The strangest pushback I've seen is this: I've been told that this can't possibly work, because Alan Turing proved that it's impossible to determine that a program is correct. This is not what Alan Turning proved. He proved that for any process designed to prove a progam will complete successfully, it is possible to write an algorithm that can defeat your process. When applied to the IntelliJ annotations, this proof simply states that it's possible to write an algorithm that may still have a bug even if the inspection passes. This doesn't mean the inspections will never work, just that they won't catch all possible bugs, which I don't expect them to do anyway.
 
-IntelliJ has a way to declare the annotations externally, so users of Eclipse or Netbeans never see them or object to them. It's a bit of a pain to set up, but lets you work around objections of others, especially when project management has forbidden their use in the code. (Yes, this has happened to me.)
+IntelliJ has a way to declare the annotations externally, so users of Eclipse or Netbeans won't object to them because they never even see them. It's a bit of a pain to set up, but it lets you work around the objections of others, especially when project management has forbidden you to put the annotations in the code. (Yes, this has happened to me.)
 
 ### The Nullness Checker
 
@@ -89,8 +91,8 @@ The cleanest solution may well be to switch to the Kotlin language. Kotlin compi
 
     var widgetOne: Widget?
     var widgetTwo: Widget = new Widget()
-    var WidgetThree = new Widget()
-Here, the question mark tells the compiler that WidgetOne may be null. But widgetTwo is declared to never be null. As is WidgetThree. WidgetThree's declaration uses an inferred type. The compiler figures out that the type is a Widget from the constructor call. Now, if the method from the previous example is declared like this:
+    var widgetThree = new Widget()
+Here, the question mark tells the compiler that widgetOne may be null. But widgetTwo and widgetThree are declared to never be null. Also, widgetThree's declaration uses an inferred type — the compiler figures out that the type is a Widget from the constructor call. Now, if the method from the previous example is declared like this:
 
     fun someMethod(widget: Widget, data: List<Int>) {
       process(widget, data);
@@ -119,7 +121,7 @@ Kotlin know that widget is no longer null inside the if branch, so it effectivel
 
 ### Conclusion
 
-When facing the Nullness flaw in the Java language, the IntelliJ annotation, the Nullness Checker, and the Kotlin language are all much better solutions than the Optional class. Optional was written for use in Functional programming, and the java.util.function package is the only one where in the Java API where Optional is used.
+When facing the Nullness flaw in the Java language, the IntelliJ annotation, the Nullness Checker, and the Kotlin language are all much better solutions than the Optional class. Optional was written for use in Functional programming, and that's the only place I use it. In fact, the java.util.function package is the only one where in the Java API where Optional is used.
 
 #### My rules for Optional
 
