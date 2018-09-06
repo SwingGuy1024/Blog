@@ -22,7 +22,7 @@ is much cleaner than these three lines of code:
        throw new InternalError("Enclosing method not found");
      return matching;
 
-My point is that Optional was written to support functional programming, which was added to Java at the same time. (The example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html))
+(This example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html)) My point is that Optional was written to support functional programming, which was added to Java at the same time. That's the only place where I use it. But gets used a lot of places where it really isn't very helpful, or it's so verbose that it's clumsy. 
 
 ## Bad Code Examples
 
