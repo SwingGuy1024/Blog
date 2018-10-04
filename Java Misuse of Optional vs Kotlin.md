@@ -199,7 +199,7 @@ Kotlin is smart enough to figure out when an optional object is no longer null, 
 
     fun someMethod(widget: Widget? data: List<Int>) {
       if (widget != null) {
-        someMethod(widget, data)
+        someMethod(widget.getName(), data)
       } else {
         ...
       }
