@@ -1,6 +1,6 @@
 # Getting Rid of Optional
 
-In my **Java Misuse of Optional vs Kotlin** blog, I give lots of examples of the misuse of Optional. Here I'm going to discuss a case where it's clearly being used correctly, but still isn't quite necessary. 
+In my **[Java Optional, Java's Nullness Flaw, and the Kotlin Language](https://github.com/SwingGuy1024/Blog/blob/master/Java%20Misuse%20of%20Optional%20vs%20Kotlin.md)** blog post, I give lots of examples of the misuse of the Optional class. Here I'm going to discuss a case where it's clearly being used correctly, but still (and surprisingly) isn't quite necessary. 
 
 A useful [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html) shows how Optional was intended to get used. Briefly, he says that it's because this:
 
@@ -102,7 +102,7 @@ The `Optional.flatMap()` method takes a method that returns Optional, so this on
 
 This is certainly a cleaner approach, and changed getters that now return Optional will let you write code this way.
 
-But here's the kicker. You can leave your getters alone. There's a way to write this same functional method without changing your getters. You can do this by adding two static methods to the class, or (better) to a utility class. The two methods here are called `opt()` and `optFn` for "optional" and "OptionalFunction".
+But here's the kicker. You can leave your getters alone. There's a way to write this same functional method without changing your getters. You can do this by adding two static methods to the class, or (better) to a utility class. The two methods here are called `opt()` and `optFn()` for "optional" and "OptionalFunction".
 
     public static <T> Optional<T> opt(T t) { return Optional.ofNullable(t); }
 
@@ -140,9 +140,9 @@ Here, I turn `computer` into an Optional by wrapping it in a call to `opt()`, an
 
 These two static methods now open up the whole world of ordinary getters to the advangates of functional programming!
 
-So what do I say to the question "Should my getters return Optional?" Well, maybe. If the values might actually be null. But if you just need to use them in functional programming, don't bother. There's a simpler approach.
+So what do I say to the question "Should my getters return Optional?" Well, maybe. If the values might actually be null. But if you just need to use them in functional programming, don't bother. This is a simpler approach.
 
-This raises an interesting question. Should methods like `Optional.flatMap()` been written this way in the first place? I'd have to do some experiments to decide if it would have been a good idea, but it certainly would have change the landscape of functional programming. 
+This raises an interesting question. Should methods like `Optional.flatMap()` been written this way in the first place? I'd have to do some experiments to decide if it would have been a good idea, but it certainly would have changed the landscape of functional programming. 
 
 ## Ready for your code
 
