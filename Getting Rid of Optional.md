@@ -92,7 +92,8 @@ With Optional, you can rewrite your getters and setters, and get somthing like t
 Now, to illutrate the advantages of functional programming (and the use of Optional), you can change your `getUSBVersion()` method to this:
 
     public static String getUSBVersion(Optional<Computer> computer) {
-      return computer.flatMap(Computer::getSoundCard)
+      return computer
+          .flatMap(Computer::getSoundCard)
           .flatMap(SoundCard::getUSB)
           .map(USB::getVersion)
           .orElse("UNKNOWN");
@@ -130,7 +131,8 @@ But here's the kicker. You can leave your getters alone. There's a way to write 
 Now your getUSBVersion() method can be written like this:
 
     public static String getUSBVersion(Computer2 optionalComputer) {
-      return opt(computer).flatMap(optFn(Computer2::getSoundCard))
+      return opt(computer)
+          .flatMap(optFn(Computer2::getSoundCard))
           .flatMap(optFn(SoundCard2::getUSB))
           .map(USB2::getVersion)
           .orElse("UNKNOWN");
@@ -159,14 +161,25 @@ This raises an interesting question. Should methods like `Optional.flatMap()` be
     public static <T> Optional<T> opt(T t) { return Optional.ofNullable(t); }
   
     /**
-     * OPTionalFuNction method. Wraps your ordinary getter in a method that returns Optional. This is intended for 
-     * functional programming when you need to specify a getter that returns an Optional, but the getter you need to use
-     * doesn't. So, for example, if your getter method is {@code String Widget.getName()}, and you need to pass it to 
-     * {@code Optional.flatMap()}, you can say {@code flatMap(optFn(Widget::getName))}
+     * optFn is short for OptionalFunction method. Wraps your ordinary getter in a method that returns Optional. 
+     * This is intended for functional programming when you need to specify a getter that returns an Optional, 
+     * but the getter you need to use doesn't. So, for example, if your getter method is 
+     * {@code String Widget.getName()}, and you need to pass it to {@code Optional.flatMap()}, you can say 
+     * {@code flatMap(optFn(Widget::getName))}
+     * <p>
+     * <strong>Example:</strong>  
+     * <pre>
+     * return opt(computer)
+     *   .flatMap(optFn(Computer2::getSoundCard)) // getSoundCard() doesn't return Optional
+     *   .flatMap(optFn(SoundCard2::getUSB))      // flatMap() needs a method that returns Optional
+     *   .map(USB2::getVersion)
+     *   .orElse("UNKNOWN");
+     * </pre>
      * @param function The getter or other Function to wrap, usually expressed as a function reference
      * @param <T> The input type of the function (This would be Widget in the example above)
      * @param <U> The return type of the function (This would be String in the example above)
      * @return A function that returns a type of {@code Optional<U>}
+     * @see #opt(Object) 
      * @author Miguel Muñoz SwingGuy1024@yahoo.com
      */
     public static <T, U> Function<? super T, Optional<U>> optFn(Function<T, U> function) {
