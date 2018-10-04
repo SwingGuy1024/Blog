@@ -142,9 +142,9 @@ Here, I turn `computer` into an Optional by wrapping it in a call to `opt()`, an
 
 These two static methods now open up the whole world of ordinary getters to the advangates of functional programming!
 
-So what do I say to the question "Should my getters return Optional?" Well, maybe. If the values might actually be null. But if you just need to use them in functional programming, don't bother. This is a simpler approach.
+So what do I say to the question "Should my getters return Optional?" Well, maybe, if the values might actually be null. Or if you need to use them in functional programming. The example that opened this essay uses two similar methods, `findFirst()`, which wraps a `Method` inside an Optional, and `getFirst()`, which just returns the `Method`. This is a good paradigm if you need it. But if you just need to pass them to a method like `Optional.flatMap()`, don't bother. This is a simpler approach.
 
-This raises an interesting question. Should methods like `Optional.flatMap()` been written this way in the first place? I'd have to do some experiments to decide if it would have been a good idea, but it certainly would have changed the landscape of functional programming. 
+This raises an interesting question about methods like `Optional.flatMap()`. Should they have been written this way in the first place? I'd have to do some experiments to decide if it would have been a good idea, but it certainly would have changed the landscape of functional programming.
 
 ## Ready for your code
 
