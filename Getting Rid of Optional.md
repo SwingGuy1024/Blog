@@ -149,8 +149,9 @@ This raises an interesting question. Should methods like `Optional.flatMap()` be
 ## Ready for your code
 
     /**
-     * Change your object to a Nullable. This is intended for functional programming when you need an Optional value. 
-     * Use this method for brevity. (You could also write {@code Optional.ofNullable(widget)} but {@code opt(widget)} 
+     * Change your object to an Optional. This is intended for functional programming when you need an Optional 
+     * value. Use this method for brevity. (You could also write {@code Optional.ofNullable(widget)} but 
+     * {@code opt(widget)} 
      * is quicker.
      * @param t The (possibly null) value to wrap in an Optional
      * @param <T> The type of the value to wrap
@@ -163,9 +164,10 @@ This raises an interesting question. Should methods like `Optional.flatMap()` be
     /**
      * optFn is short for OptionalFunction method. Wraps your ordinary getter in a method that returns Optional. 
      * This is intended for functional programming when you need to specify a getter that returns an Optional, 
-     * but the getter you need to use doesn't. So, for example, if your getter method is 
-     * {@code String Widget.getName()}, and you need to pass it to {@code Optional.flatMap()}, you can say 
-     * {@code flatMap(optFn(Widget::getName))}
+     * but the getter you need to use doesn't. So, for example, if your getter method is
+     * {@code String Widget.getName()}, and you need to pass it to {@code Optional.flatMap()}, you can 
+     * say this:<br>
+     * &nbsp;&nbsp;{@code flatMap(optFn(Widget::getName))}
      * <p>
      * <strong>Example:</strong>  
      * <pre>
