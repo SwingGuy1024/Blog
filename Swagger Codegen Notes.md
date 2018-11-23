@@ -13,3 +13,11 @@ This applies to RESTful APIs, but not to data models. If a RESTful API has an op
     }
 
 *Advise:* Leave this off.
+### Interface Only
+In the `api` folder, this generates only interfaces for the APIs. It leaves out the Controller classes, as well as these classes:
+
+    ApiException.java
+    ApiOriginFilter.java
+    ApiResponseMessage.java
+    NotFoundException.java
+*Advise:* Turn this on after generating the controllers the first time.
