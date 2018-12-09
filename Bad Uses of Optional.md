@@ -36,9 +36,9 @@ Another place where it gets used is in the very useful `Optional.flatMap()` meth
     public <U> Optional<U> flatMap(Function<? super T, ? extends Optional<? extends U>> mapper)
     public <U> Optional<U> map(Function<? super T, ? extends U> mapper)
 
-The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't.
+The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. So Optional will only be used when a method might actually return null. 
 
-But it gets used a lot of places where it really isn't very helpful, or it's so verbose that it's clumsy. Rather than add to the endless debate about how to use it, I'd like to illustrate just how badly it's getting used. Here are some examples, all taken from actual production code.
+But all-too-often it gets used where `Required` might be more descriptive. It's also used a lot of places where it really isn't very helpful, or it's so verbose that it's clumsy. Rather than add to the endless debate about how to use it, I'd like to illustrate just how badly it's getting used. Here are some examples, all taken from actual production code.
 
 ## Bad Code Examples
 
