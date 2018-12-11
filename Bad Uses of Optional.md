@@ -105,54 +105,53 @@ This also breaks the convention I discussed in the opening, where the user is gi
 
 Many people have written guidelines recommending against using Optional as parameter methods, but people do it anyway. A common variation of the code in example 1 looks like this:
 
-    01 private void someMethod(Optional<Widget> widgetOpt) {
-    02   if (!widgetOpt.isPresent) {
-    03     throw new BusinessException("Missing Widget");
-    04   }
-    05   // ... (More code)
+    1 private void someMethod(Optional<Widget> widgetOpt) {
+    2   if (!widgetOpt.isPresent) {
+    3     throw new BusinessException("Missing Widget");
+    4   }
+    5   // ... (More code)
 
 Again I have to ask: What clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But once you look at the code, it's clearly not. A case could be made for using Optional when null is actually allowed, but so many methods are written like this one that the point will get lost. (Not that it's a good idea anyway.) But this case, where an Optional is required where a null value throws an exception, results in a misleading API that's more verbose to call, since the user must now write `someMethod(Optional.ofNullable(widget));` instead of `someMethod(widget);` A method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite. This method uses `Optional` to mean `Required`.
 
 ### Example 4: Seemingly Sensible Use
 
-Here's a case where it may actually make sense to use Optional on a method parameter:
+Here's a case where the use of Optional clearly does not mislead the user.
 
-    01 private void someMethod(Optional<Widget> widgetOpt) {
-    02   final Widget widget = widgetOpt.orElse(getDefaultWidget());
-    03   // ... (More code)
+    1 private void someMethod(Optional<Widget> widgetOpt) {
+    2   final Widget widget = widgetOpt.orElse(getDefaultWidget());
+    3   // ... (More code)
 
 Here, finally, we can say that Optional is adding clarity to the API. Use of null instead of a Widget instance is actually allowed. Here, the API does not mislead anyone. Of course, users who choose to use null must be careful not to call `Optional.of(widget)`. Instead, they should use `Optional.ofNullable(widget)` or `Optional.empty()`, but that's a fail-fast mistake, so it will get caught early. Unfortunately, so many developers wrap required parameters inside Optional, that the meaning of this occasional valid use will often get lost anyway. And, there's a simpler way to write the API that doesn't add verbosity to the calling method:
 
-    01 private void someMethod(final Widget widgetOrNull) {
-    02   final Widget widget = widgetOrNull == null? getDefaultWidget() : widgetOrNull;
-    03   // ... (More code)
+    1 private void someMethod(final Widget widgetOrNull) {
+    2   final Widget widget = widgetOrNull == null? getDefaultWidget() : widgetOrNull;
+    3   // ... (More code)
     
 Simply renaming the parameter will provide the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. 
 
     someMethod(Optional.ofNullable(widget));  // The first method should be called like this.
     someMethod(widget);                       // The second may be called like this.
-Furthermore, 
 
 ### Example 5: Pointless
-    01 private void someMethod(Optional<Widget> widgetOpt) {
-    02   if (!widgetOpt.isPresent) {
-    03     throw new NullPointerException();
-    04   }
-    05   Widget widget = widgetOpt.get();
-    06   widget.doSomething();
-    07   // ... (More code)
+    1 private void someMethod(Optional<Widget> widgetOpt) {
+    2   if (!widgetOpt.isPresent) {
+    3     throw new NullPointerException();
+    4   }
+    5   Widget widget = widgetOpt.get();
+    6   widget.doSomething();
+    7   // ... (More code)
     
 Yeah. I've seen this. Once again, Optional is used for a required value. And lines 2-4 are unnecessary. It could be argued that this is more readable, because the throw is now explicit, but readability could be accomplished with a simple comment:
 
-    01 private void someMethod(Optional<Widget> widgetOpt) {
-    02   Widget widget = widgetOpt.get(); // throws NullPointerException
-    03   widget.doSomething();            
-    04   // ... (More code)
+    1 private void someMethod(Optional<Widget> widgetOpt) {
+    2   Widget widget = widgetOpt.get(); // throws NullPointerException
+    3   widget.doSomething();            
+    4   // ... (More code)
     
 Or you could remove Optional, and get a method that's easier to call:
 
-    01 private void someMethod(Widget widget) {
-    03   widget.doSomething();  // throws NullPointerException
-    04   // ... (More code)
+    1 private void someMethod(Widget widget) {
+    2   widget.doSomething();  // throws NullPointerException
+    3   // ... (More code)
     
 All three of these methods do exactly the same thing.
