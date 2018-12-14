@@ -111,7 +111,7 @@ Many people have written guidelines recommending against using Optional as param
     4   }
     5   // ... (More code)
 
-Again I have to ask: What clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But once you look at the code, it's clearly not. A case could be made for using Optional when null is actually allowed, but so many methods are written like this one that the point will get lost. (Not that it's a good idea anyway.) But this case, where an Optional is required where a null value throws an exception, results in a misleading API that's more verbose to call, since the user must now write `someMethod(Optional.ofNullable(widget));` instead of `someMethod(widget);` A method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite. This method uses `Optional` to mean `Required`.
+Widget is a required value.. So why is it wrapped in an Optional? And what clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But it's clearly not. A case could be made for using Optional when null is actually allowed, but so many methods are written like this one that the point will get lost. (Not that it's a good idea anyway.) But this case, where an Optional is required where a null value throws an exception, results in a misleading API that's more verbose to call, since the user must now write `someMethod(Optional.ofNullable(widget));` instead of `someMethod(widget);` A method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite. This method uses `Optional` to mean `Required`.
 
 ### Example 4: Seemingly Sensible Use
 
@@ -127,7 +127,7 @@ Here, finally, we can say that Optional is adding clarity to the API. Use of nul
     2   final Widget widget = widgetOrNull == null? getDefaultWidget() : widgetOrNull;
     3   // ... (More code)
     
-Simply renaming the parameter will provide the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. 
+Simply renaming the parameter provides the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. 
 
     someMethod(Optional.ofNullable(widget));  // The first method should be called like this.
     someMethod(widget);                       // The second may be called like this.
@@ -154,4 +154,4 @@ Or you could remove Optional, and get a method that's easier to call:
     2   widget.doSomething();  // throws NullPointerException
     3   // ... (More code)
     
-All three of these methods do exactly the same thing.
+All three of these methods behave exactly the same way.
