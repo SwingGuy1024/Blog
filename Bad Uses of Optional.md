@@ -58,7 +58,7 @@ But all-too-often it gets used where `Required` might be more descriptive. It's 
     10   // ...more code
     11 }
 
-What's going on here? One lines 2 and 3, the coder is taking two lines to do a simple null check. Then it throws `widgetOpt` away, and it creates a second Optional of the same value on line 8. 
+What's going on here? One lines 2 and 3, the coder is taking two lines to do a simple null check. It wraps `widget` in an Optional, then throws it away and wraps the same value inside a second Optional on line 8. 
 
 The first use is needlessly verbose, and seems to be done just to avoid ever using the `null` keyword in the code, as if it's use is now taboo. Lines 02 - 05 could have been written like this:
 
@@ -68,7 +68,7 @@ The first use is needlessly verbose, and seems to be done just to avoid ever usi
 
 This is cleaner, more readable, and even faster. 
 
-But the second use of Optional is necessary. But it's necessary not because they're doing functional programming, but merely because someone wrote a method that takes an `Optional<Widget>` as a parameter.
+The second use of Optional is necessary. But it's necessary not because they're doing functional programming, but merely because someone wrote a method that takes an `Optional<Widget>` as a parameter.
 
 To make matters worse, there's a repeated bug in lines 02 and 08 that didn't get caught. It says `Optional.of(widget)`, but it should say `Optional.ofNullable(widget)`! So if a null value ever gets passed into this method, it will throw a `NullPointerException` instead of the `BusinessException` thrown on line 04. But nobody caught this error because the code that called this *private* method had already made sure that widget was not null, so the test was unnecessary.
 
@@ -118,7 +118,7 @@ Widget is a required value.. So why is it wrapped in an Optional? And what clari
 Here's a case where the use of Optional clearly does not mislead the user.
 
     1 private void someMethod(Optional<Widget> widgetOpt) {
-    2   final Widget widget = widgetOpt.orElse(getDefaultWidget());
+    2   final Widget widget = widgetOpt.orElseGet(() -> getDefaultWidget());
     3   // ... (More code)
 
 Here, finally, we can say that Optional is adding clarity to the API. Use of null instead of a Widget instance is actually allowed. Here, the API does not mislead anyone. Of course, users who choose to use null must be careful not to call `Optional.of(widget)`. Instead, they should use `Optional.ofNullable(widget)` or `Optional.empty()`, but that's a fail-fast mistake, so it will get caught early. Unfortunately, so many developers wrap required parameters inside Optional, that the meaning of this occasional valid use will often get lost anyway. And, there's a simpler way to write the API that doesn't add verbosity to the calling method:
