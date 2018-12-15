@@ -120,7 +120,7 @@ Prior to the invention of Optional, this method could have been written like thi
     3     throw new BusinessException("Missing Widget");
     4   }
     5   // ... (More code)
-This is cleaner and easier to call. The addition of Optional to the interface doesn't do much beyond giving us an alternate way to test for null, which puts greater demands on the user.
+This is cleaner and easier to call. The addition of Optional to the interface doesn't do much beyond giving us an alternate way to test for null, but which puts greater demands on the user.
 
 ### Example 4: Seemingly Sensible Use
 
