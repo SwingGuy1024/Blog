@@ -165,7 +165,7 @@ Or you could remove Optional, and get a method that's easier to call:
     
 All three of these methods behave exactly the same way.
 
-This is how methods were written long before Optional was invented, so it could be argued that this now provides no information about whether the parameter is required. This is a good point. So the method could be written like this:
+This is how methods were written long before Optional was invented, so it could be argued that this last example no longer provides information about whether the parameter is required. This is a good point. So the method could be written like this:
 
     1 private void someMethod(Widget requiredWidget) {
     2   requiredWidget.doSomething();  // throws NullPointerException
