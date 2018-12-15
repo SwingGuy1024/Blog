@@ -111,7 +111,16 @@ Many people have written guidelines recommending against using Optional as param
     4   }
     5   // ... (More code)
 
-Widget is a required value.. So why is it wrapped in an Optional? And what clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But it's clearly not. A case could be made for using Optional when null is actually allowed, but so many methods are written like this one that the point will get lost. (Not that it's a good idea anyway.) But this case, where an Optional is required where a null value throws an exception, results in a misleading API that's more verbose to call, since the user must now write `someMethod(Optional.ofNullable(widget));` instead of `someMethod(widget);` A method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite. This method uses `Optional` to mean `Required`.
+This method uses `Optional` to mean `Required`. So why is the Widget wrapped in an Optional? And what clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But it's clearly not. This method, which asks the user to wrap a required value inside an Optional, has an interface that's both misleading and more verbose to use, since the user must now write `someMethod(Optional.ofNullable(widget))` instead of `someMethod(widget)` A good method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite.
+
+Prior to the invention of Optional, this method could have been written like this:
+
+    1 private void someMethod(Widget requiredWidget) {
+    2   if (requiredWidget == null) {
+    3     throw new BusinessException("Missing Widget");
+    4   }
+    5   // ... (More code)
+This is cleaner and easier to call. The addition of Optional to the interface doesn't do much beyond giving us an alternate way to test for null, which puts greater demands on the user.
 
 ### Example 4: Seemingly Sensible Use
 
