@@ -58,7 +58,7 @@ But all-too-often it gets used where `Required` might be more descriptive. It's 
     10   // ...more code
     11 }
 
-What's going on here? One lines 2 and 3, the coder is taking two lines to do a simple null check. It wraps `widget` in an Optional, then throws it away and wraps the same value inside a second Optional on line 8. 
+What's going on here? On lines 2 and 3, the coder is taking two lines to do a simple null check. It wraps `widget` in an Optional, then throws it away and wraps the same value inside a second Optional on line 8. 
 
 The first use is needlessly verbose, and seems to be done just to avoid ever using the `null` keyword in the code, as if it's use is now taboo. Lines 02 - 05 could have been written like this:
 
@@ -70,7 +70,7 @@ This is cleaner, more readable, and even faster.
 
 The second use of Optional is necessary. But it's necessary not because they're doing functional programming, but merely because someone wrote a method that takes an `Optional<Widget>` as a parameter.
 
-To make matters worse, there's a repeated bug in lines 02 and 08 that didn't get caught. It says `Optional.of(widget)`, but it should say `Optional.ofNullable(widget)`! So if a null value ever gets passed into this method, it will throw a `NullPointerException` instead of the `BusinessException` thrown on line 04. But nobody caught this error because the code that called this *private* method had already made sure that widget was not null, so the test was unnecessary.
+To make matters worse, there's a repeated bug in lines 02 and 08 that didn't get caught. It says `Optional.of(widget)`, but it should say `Optional.ofNullable(widget)`! So if a null value ever gets passed into this method, it will throw a `NullPointerException` instead of the `BusinessException` thrown on line 04. But nobody caught this bug because the code that called this *private* method had already made sure that widget was not null, so the test wasn't even necessary.
 
 ### Example 2: Misleading Return values
 
