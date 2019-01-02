@@ -14,7 +14,7 @@ Optional was introduced at the same time as functional programming. It's helpful
       .filter(m -> Objects.equals(m.getName(), enclosingInfo.getName())
       .filter(m ->  Arrays.equals(m.getParameterTypes(), parameterClasses))
       .filter(m -> Objects.equals(m.getReturnType(), returnType))
-      .getFirst();
+      .getFirst();                                                          // getFirst() does not return Optional. May return null.
     if (matching == null)
       throw new InternalError("Enclosing method not found");
     return matching;
@@ -26,17 +26,17 @@ Optional was introduced at the same time as functional programming. It's helpful
       .filter(m -> Objects.equals(m.getName(), enclosingInfo.getName())
       .filter(m ->  Arrays.equals(m.getParameterTypes(), parameterClasses))
       .filter(m -> Objects.equals(m.getReturnType(), returnType))
-      .findFirst()
+      .findFirst()                                                          // findFirst() returns Optional<Method>.
       .getOrThrow(() -> new InternalError("Enclosing method not found"));
 
-(This example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html)) My point is that Optional is needed to support functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `getFirst()` method from example A, which may return null, gets replaced by the `findFirst()` method, which wraps the null value inside an Optional. The Optional, in turn, lets us continue the chain of methods.
+(This example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html)) My point is that Optional is needed to support function chaining. This is used widely in functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `getFirst()` method from example A, which may return null, gets replaced by the `findFirst()` method, which wraps the null value inside an Optional. The Optional, in turn, lets us continue the chain of methods.
 
 Another place where it gets used is in the very useful `Optional.flatMap()` method, but not in the `Optional.map()` method. Here are their signatures:
 
     public <U> Optional<U> flatMap(Function<? super T, ? extends Optional<? extends U>> mapper)
     public <U> Optional<U> map(Function<? super T, ? extends U> mapper)
 
-The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. So Optional will only be used when a method might actually return null.
+The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. So Optional will only be used with a method that might actually return null.
 
 In both of these examples, the API offers two methods, one of which uses Optional. This is a useful usage pattern.
 
