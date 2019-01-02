@@ -14,7 +14,7 @@ Optional was introduced at the same time as functional programming. It's helpful
       .filter(m -> Objects.equals(m.getName(), enclosingInfo.getName())
       .filter(m ->  Arrays.equals(m.getParameterTypes(), parameterClasses))
       .filter(m -> Objects.equals(m.getReturnType(), returnType))
-      .getFirst();                                                          // getFirst() does not return Optional. May return null.
+      .getFirst();                                            // getFirst() does not return Optional. May return null.
     if (matching == null)
       throw new InternalError("Enclosing method not found");
     return matching;
