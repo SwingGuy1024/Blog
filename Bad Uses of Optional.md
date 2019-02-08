@@ -29,18 +29,18 @@ Optional was introduced at the same time as functional programming. It's helpful
       .findFirst()                                                          // findFirst() returns Optional<Method>.
       .getOrThrow(() -> new InternalError("Enclosing method not found"));
 
-(This example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html)) My point is that Optional is needed to support function chaining. This is used widely in functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `getFirst()` method from example A, which may return null, gets replaced by the `findFirst()` method, which wraps the null value inside an Optional. The Optional, in turn, lets us continue the chain of methods.
+(This example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html)) My point is that Optional is needed to support function chaining. It allows a chain of calls to proceed even if a method returns null. This is used widely in functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `getFirst()` method from example A, which may return null, gets replaced by the `findFirst()` method, which wraps the null value inside an Optional. The Optional, in turn, lets us continue the chain of methods.
 
 Another place where it gets used is in the very useful `Optional.flatMap()` method, but not in the `Optional.map()` method. Here are their signatures:
 
     public <U> Optional<U> flatMap(Function<? super T, ? extends Optional<? extends U>> mapper)
     public <U> Optional<U> map(Function<? super T, ? extends U> mapper)
 
-The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. So Optional will only be used with a method that might actually return null.
+The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. 
 
-In both of these examples, the API offers two methods, one of which uses Optional. This is a useful usage pattern.
+In both of these examples, the API offers two methods, one of which uses Optional. This is a useful usage pattern. It lets us limit the use of Optional to methods that might actually return null.
 
-But all-too-often it gets used where `Required` might be more descriptive. It's also used a lot of places where it really isn't very helpful, or it's so verbose that it's clumsy. Rather than add to the endless debate about how to use it, I'd like to illustrate just how badly it's getting used. Here are some examples, all taken from actual production code.
+But all-too-often it gets used where `Required` might be more descriptive. It's also used a lot of places where it really isn't very helpful, or it's so verbose that it makes the code clumsy. Rather than add to the endless debate about how to use it, I'd like to illustrate just how badly it's getting used. Here are some examples, all taken from actual production code.
 
 ## Bad Code Examples
 
@@ -48,7 +48,7 @@ But all-too-often it gets used where `Required` might be more descriptive. It's 
 
     01 private void someMethod(Widget widget, ... <other parameters>) {
     02   Optional<Widget> widgetOpt = Optional.of(widget);
-    03   if (!widgetOpt.isPresent) {
+    03   if (!widgetOpt.isPresent()) {
     04     throw new BusinessException("Missing Widget");
     05   }
     06   // ... widgetOpt is never used again, even though it could be.
@@ -150,7 +150,7 @@ Simply renaming the parameter provides the same information as Optional. Before 
     6   widget.doSomething();
     7   // ... (More code)
     
-Yeah. I've seen this. Once again, Optional is used for a required value. And lines 2-4 are unnecessary. It could be argued that this is more readable, because the throw is now explicit, but readability could be accomplished with a simple comment:
+Yeah. I've seen this. And lines 2-4 are pointless. The only reason to call `isPresent()` on line 2 is to prevent a NullPointerException on line 5. So what does it do with a null? It throws the exception anyway! A case could be made that this is more readable, because the throw is now explicit, but readability could be accomplished with a simple comment:
 
     1 private void someMethod(Optional<Widget> widgetOpt) {
     2   Widget widget = widgetOpt.get(); // throws NullPointerException
@@ -165,8 +165,23 @@ Or you could remove Optional, and get a method that's easier to call:
     
 All three of these methods behave exactly the same way.
 
-This is how methods were written long before Optional was invented, so it could be argued that this last example no longer provides information about whether the parameter is required. This is a good point. So the method could be written like this:
+Now we have an opportunity to clarify the required nature of the parameter. All we have to do is change its name:
 
     1 private void someMethod(Widget requiredWidget) {
     2   requiredWidget.doSomething();  // throws NullPointerException
     3   // ... (More code)
+
+### Example 6: OrElse(null)
+    1 public User findByUuid(@NotNull String userUuid) {
+    2     UserTable userTable = this.userTableDao.findByUuid(userUuid).orElse(null);
+    3     return userTable != null ? this.userConverter.toSpecial(userTable) : null;
+    4 }
+Unlike the other examples, this one provides a good opportunity to use Optional, and use it correctly, but the developer doesn't bother. The first line used the entertaining `orElse(null)` call to convert an Optional value into an ordinary nullable variable. The rest of the method proceeds as if Optional had never been invented. This is fine, even though this is a good opportunity to actually use Optional correctly. The method could have been written like this: 
+
+    public SpecialUser findByUuid(@NotNull String userUuid) {
+        return this.userTblDao.findByUuid(userUuid)
+                .map(userTbl -> this.userConverter.toSpecial(userTbl))
+                .orElse(null);
+    }
+
+However, since the method returns the same kind of ordinary nullable variable as the `userTable` variable on line 2, there's no getting rid of the `orElse(null)` call.
