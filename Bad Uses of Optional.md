@@ -133,7 +133,7 @@ Here's a case where the use of Optional clearly does not mislead the user.
 Here, finally, we can say that Optional is adding clarity to the API. Use of null instead of a Widget instance is actually allowed. Here, the API does not mislead anyone. Of course, users who choose to use null must be careful not to call `Optional.of(widget)`. Instead, they should use `Optional.ofNullable(widget)` or `Optional.empty()`, but that's a fail-fast mistake, so it will get caught early. Unfortunately, so many developers wrap required parameters inside Optional, that the meaning of this occasional valid use will often get lost anyway. And, there's a simpler way to write the API that doesn't add verbosity to the calling method:
 
     1 private void someMethod(final Widget widgetOrNull) {
-    2   final Widget widget = widgetOrNull == null? getDefaultWidget() : widgetOrNull;
+    2   final Widget widget = (widgetOrNull == null) ? getDefaultWidget() : widgetOrNull;
     3   // ... (More code)
     
 Simply renaming the parameter provides the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. 
@@ -150,11 +150,11 @@ Simply renaming the parameter provides the same information as Optional. Before 
     6   widget.doSomething();
     7   // ... (More code)
     
-Yeah. I've seen this. And lines 2-4 are pointless. The only reason to call `isPresent()` on line 2 is to prevent a NullPointerException on line 5. So what does it do with a null? It throws the exception anyway! A case could be made that this is more readable, because the throw is now explicit, but readability could be accomplished with a simple comment:
+Yeah. I've seen this. And lines 2-4 are pretty pointless. The only reason to call `isPresent()` on line 2 is to prevent a NoSuchElementException on line 5. So it prevents the NoSuchElementException by throwing a NullPointerException instead! A case could be made that this is more readable, because the throw is now explicit, but readability could be accomplished with a simple comment:
 
     1 private void someMethod(Optional<Widget> widgetOpt) {
-    2   Widget widget = widgetOpt.get(); // throws NullPointerException
-    3   widget.doSomething();            
+    2   Widget widget = widgetOpt.get(); // throws NoSuchElementException
+    3   widget.doSomething();
     4   // ... (More code)
     
 Or you could remove Optional, and get a method that's easier to call:
@@ -163,9 +163,7 @@ Or you could remove Optional, and get a method that's easier to call:
     2   widget.doSomething();  // throws NullPointerException
     3   // ... (More code)
     
-All three of these methods behave exactly the same way.
-
-Now we have an opportunity to clarify the required nature of the parameter. All we have to do is change its name:
+All three of these methods behave exactly the same way, except for which RuntimeException they throw. But the last one takes one line to do what five lines did in the first case. It also gives us an opportunity to clarify the required nature of the parameter. All we have to do is change its name:
 
     1 private void someMethod(Widget requiredWidget) {
     2   requiredWidget.doSomething();  // throws NullPointerException
@@ -231,7 +229,7 @@ Or you could do all this extra work in the getter.
         }
     }
 
-Probably neither of these are good ways to write this property, but they prevents the getter from returning null, so the missing null-check becomes unnecessary. But you still need check if the Optional is itself null! And it's still more work to call the setter, because you need to wrap the result in an Optional:
+Probably neither of these are good ways to write this property, but they prevent the getter from returning null, so the missing null-check becomes unnecessary. But you still need check if the Optional is itself null! And it's still more work to call the setter, because you need to wrap the result in an Optional:
 
     authenticationResult.setLockoutDuration(Optional.of(5));
 
