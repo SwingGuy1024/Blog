@@ -171,17 +171,117 @@ Now we have an opportunity to clarify the required nature of the parameter. All 
     2   requiredWidget.doSomething();  // throws NullPointerException
     3   // ... (More code)
 
-### Example 6: OrElse(null)
-    1 public User findByUuid(@NotNull String userUuid) {
-    2     UserTable userTable = this.userTableDao.findByUuid(userUuid).orElse(null);
-    3     return userTable != null ? this.userConverter.toSpecial(userTable) : null;
-    4 }
-Unlike the other examples, this one provides a good opportunity to use Optional, and use it correctly, but the developer doesn't bother. The first line used the entertaining `orElse(null)` call to convert an Optional value into an ordinary nullable variable. The rest of the method proceeds as if Optional had never been invented. This is fine, even though this is a good opportunity to actually use Optional correctly. The method could have been written like this: 
+### Example 6: Self Defeating
+(Work in progress)
 
-    public SpecialUser findByUuid(@NotNull String userUuid) {
-        return this.userTblDao.findByUuid(userUuid)
-                .map(userTbl -> this.userConverter.toSpecial(userTbl))
-                .orElse(null);
+**AuthenticationResult.class**
+
+    public class AuthenticationResult {
+        // ...
+        private Optional<Integer> lockoutDuration;
+
+        public Optional<Integer> getLockoutDuration() {
+            return lockoutDuration;
+        }
+
+        public void setLockoutDuration(Optional<Integer> lockoutDuration) {
+            this.lockoutDuration = lockoutDuration;
+        }
     }
 
-However, since the method returns the same kind of ordinary nullable variable as the `userTable` variable on line 2, there's no getting rid of the `orElse(null)` call.
+**Usage**
+
+    setResultLockoutDuration(result, authenticationResult.getLockoutDuration().get()); // This threw a NullPointerException
+
+Why are we getting a `NullPointerException`? Is it because the Optional is empty? Or is `authenticationResult` null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the call to `AuthenticationResult.getLockoutDuration()` is returning null.
+
+So there are three bugs here. Two are in this one line of code, and one is in the class.
+
+**Bug 1**
+
+The Optional lockoutDuration property was may itself be null. This is a problem because the class member was left uninitialized. If you're going to use wrap member values inside Optionals, it's wise to always initialize them. But you should also take care that they don't get set to null.
+
+    private Optional<Integer> lockoutDuration = Optional.empty();
+
+    public void setLockoutDuration(Optional<Integer> lockoutDuration) {
+        if (lockoutDuration == null) {
+            this.lockoutDuration = Optional.empty();
+        } else {
+            this.lockoutDuration = lockoutDuration;
+        }
+    }
+
+    public Optional<Integer> getLockoutDuration() {
+        return lockoutDuration;
+    }
+
+Or you could do all this extra work in the getter. 
+
+    private Optional<Integer> lockoutDuration;
+
+    public void setLockoutDuration(Optional<Integer> lockoutDuration) {
+        this.lockoutDuration = lockoutDuration;
+    }
+
+    public Optional<Integer> getLockoutDuration() {
+        if (lockoutDuration == null) {
+            return Optional.empty();
+        } else {
+            return lockoutDuration;
+        }
+    }
+
+Probably neither of these are good ways to write this property, but they prevents the getter from returning null, so the missing null-check becomes unnecessary. But you still need check if the Optional is itself null! And it's still more work to call the setter, because you need to wrap the result in an Optional:
+
+    authenticationResult.setLockoutDuration(Optional.of(5));
+
+It makes more sense to leave the Optional out of the setter:
+
+    public void setLockoutDuration(Integer lockoutDuration) {
+        this.lockoutDuration = Optional.ofNullable(lockoutDuration);
+    }
+
+Now you have a method that is both simpler and easier to call.
+
+In this particular case, you can even take advantage of the fact that the Integer wraps a primitive value:
+
+    public void setLockoutDuration(int lockoutDuration) {
+        this.lockoutDuration = Optional.of(lockoutDuration);
+    }
+
+(This won't help for most types, so I will leave this point out for the rest of this discussion.)
+
+The possibility of a the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so it an easy test to write.
+
+**Bug 2**
+
+They forgot to test the value of `lockoutDuration` for null, which shouldn't even be necessary.
+
+**Bug 3**
+
+Third, even if it wasn't null, it would have been empty, so their call to get() would have thrown a `NoSuchElementException`.
+
+This raises the question, why is the `duration` property stored as an Optional, rather than just a value? 
+
+When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was trying using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
+
+This is far more robust. The `NullPointerException` goes away completely. This bug could also have been avoided by avoiding the use of Optional class member at all:
+
+    public class AuthenticationResult {
+        // ...
+        private Integer lockoutDuration;
+
+        public Optional<Integer> getLockoutDurationOpt() {
+            return Optional.ofNullable(lockoutDuration);
+        }
+        
+        public Integer getLockoutDuration() {
+            return lockoutDuration;
+        }
+
+        public void setLockoutDuration(lockoutDuration) {
+            this.lockoutDuration = lockoutDuration;
+        }
+    }
+
+Of course, by itself, neither of these change solves the problem. The original line of code will now throw a `NoSuchElementException`. 
