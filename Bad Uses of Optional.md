@@ -199,7 +199,7 @@ On top of that, the class is buggy, because the Optional<Integer> that wraps a p
 
 When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was trying using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
 
-(The possibility of a the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so it an easy test to write.)
+(The possibility of a the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write.)
 
 The Optional<lockoutDuration> property may be null because the class member was left uninitialized. If you're going to  wrap member values inside Optionals, it's wise to always initialize them. But you should also take care that the setter doesn't set them to null.
 
@@ -235,7 +235,7 @@ It makes more sense to leave the Optional out of the setter:
         this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull);
     }
 
-If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times, or fifty times. Which makes more sense, wrapping the the value in an Optional five hundred times, or doing that once? And if it gets done five hundred times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
+If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times, or fifty times. Which makes more sense, wrapping the the value in an Optional fifty times, or doing that once? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
 
 Now you have a method that is both simpler and easier to call. Also, the fact that your value is wrapped inside an Optional is now an implementation detail that's hidden from the user. 
 
