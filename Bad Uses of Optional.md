@@ -172,7 +172,7 @@ All three of these methods behave exactly the same way, except for which Runtime
 ### Example 6: Self Defeating
 (Work in progress)
 
-**AuthenticationResult.class**
+**Buggy AuthenticationResult.class**
 
     public class AuthenticationResult {
         // ...
@@ -187,26 +187,26 @@ All three of these methods behave exactly the same way, except for which Runtime
         }
     }
 
-**Usage**
+**Buggy Usage Example**
 
-    setResultLockoutDuration(result, authenticationResult.getLockoutDuration().get()); // This threw a NullPointerException
+    setResultLockoutDuration(result, authenticationResult.getLockoutDuration().get());
 
-Why are we getting a `NullPointerException`? Is it because the Optional is empty? Or is `authenticationResult` null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the call to `AuthenticationResult.getLockoutDuration()` is returning null.
+This usage threw a NullPointerException. Why? Is it because the Optional<Integer> is empty? Or is `authenticationResult` null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the call to `AuthenticationResult.getLockoutDuration()` is returning null.
 
-So there are three bugs here. Two are in this one line of code, and one is in the class.
+So there are two bugs in the usage: First, They didn't test the value of `lockoutDuration` for null, which shouldn't even be necessary. Second, even if it wasn't null, it would have been empty, so their call to get() would have thrown a `NoSuchElementException`.
 
-**Bug 1**
+On top of that, the class is buggy, because the Optional<Integer> that wraps a possibly null value may itself be null.
 
-The Optional lockoutDuration property was may itself be null. This is a problem because the class member was left uninitialized. If you're going to use wrap member values inside Optionals, it's wise to always initialize them. But you should also take care that they don't get set to null.
+When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was trying using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
+
+(The possibility of a the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so it an easy test to write.)
+
+The Optional<lockoutDuration> property may be null because the class member was left uninitialized. If you're going to  wrap member values inside Optionals, it's wise to always initialize them. But you should also take care that the setter doesn't set them to null.
 
     private Optional<Integer> lockoutDuration = Optional.empty();
 
     public void setLockoutDuration(Optional<Integer> lockoutDuration) {
-        if (lockoutDuration == null) {
-            this.lockoutDuration = Optional.empty();
-        } else {
-            this.lockoutDuration = lockoutDuration;
-        }
+        this.lockoutDuration = (lockoutDuration == null)? Optional.empty() : lockoutDuration;
     }
 
     public Optional<Integer> getLockoutDuration() {
@@ -222,24 +222,22 @@ Or you could do all this extra work in the getter.
     }
 
     public Optional<Integer> getLockoutDuration() {
-        if (lockoutDuration == null) {
-            return Optional.empty();
-        } else {
-            return lockoutDuration;
-        }
+        return (lockoutDuration == null)? Optional.empty() : lockoutDuration;
     }
 
-Probably neither of these are good ways to write this property, but they prevent the getter from returning null, so the missing null-check becomes unnecessary. But you still need check if the Optional is itself null! And it's still more work to call the setter, because you need to wrap the result in an Optional:
+Each of these is an improvement. They are far more robust. The `NullPointerException` goes away completely. The getter will never return null, so the missing null-check becomes unnecessary. But it's still more work to call the setter, because you need to wrap the result in an Optional:
 
     authenticationResult.setLockoutDuration(Optional.of(5));
 
 It makes more sense to leave the Optional out of the setter:
 
-    public void setLockoutDuration(Integer lockoutDuration) {
-        this.lockoutDuration = Optional.ofNullable(lockoutDuration);
+    public void setLockoutDuration(Integer lockoutDurationOrNull) {
+        this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull);
     }
 
-Now you have a method that is both simpler and easier to call.
+If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times, or fifty times. Which makes more sense, wrapping the the value in an Optional five hundred times, or doing that once? And if it gets done five hundred times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
+
+Now you have a method that is both simpler and easier to call. Also, the fact that your value is wrapped inside an Optional is now an implementation detail that's hidden from the user. 
 
 In this particular case, you can even take advantage of the fact that the Integer wraps a primitive value:
 
@@ -247,23 +245,9 @@ In this particular case, you can even take advantage of the fact that the Intege
         this.lockoutDuration = Optional.of(lockoutDuration);
     }
 
-(This won't help for most types, so I will leave this point out for the rest of this discussion.)
+(This won't help for most types.)
 
-The possibility of a the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so it an easy test to write.
-
-**Bug 2**
-
-They forgot to test the value of `lockoutDuration` for null, which shouldn't even be necessary.
-
-**Bug 3**
-
-Third, even if it wasn't null, it would have been empty, so their call to get() would have thrown a `NoSuchElementException`.
-
-This raises the question, why is the `duration` property stored as an Optional, rather than just a value? 
-
-When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was trying using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
-
-This is far more robust. The `NullPointerException` goes away completely. This bug could also have been avoided by avoiding the use of Optional class member at all:
+This bug could also have been avoided by avoiding the use of Optional class member at all:
 
     public class AuthenticationResult {
         // ...
@@ -277,9 +261,8 @@ This is far more robust. The `NullPointerException` goes away completely. This b
             return lockoutDuration;
         }
 
-        public void setLockoutDuration(lockoutDuration) {
-            this.lockoutDuration = lockoutDuration;
+        public void setLockoutDuration(lockoutDurationOrNull) {
+            lockoutDuration = lockoutDurationOrNull;
         }
     }
-
-Of course, by itself, neither of these change solves the problem. The original line of code will now throw a `NoSuchElementException`. 
+ Here, the code and the method signatures are as simple is they can get. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null.
