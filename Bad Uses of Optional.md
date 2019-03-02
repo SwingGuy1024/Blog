@@ -135,7 +135,7 @@ Here, finally, we can say that Optional is adding clarity to the API. Use of nul
     1 private void someMethod(final Widget widgetOrNull) {
     2   final Widget widget = (widgetOrNull == null) ? getDefaultWidget() : widgetOrNull;
     3   // ... (More code)
-    
+
 Simply renaming the parameter provides the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. 
 
     someMethod(Optional.ofNullable(widget));  // The first method should be called like this.
@@ -235,10 +235,10 @@ It makes more sense to leave the Optional out of the setter:
         this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull);
     }
 
-If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional fifty times, or doing that once? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
-
 Removing Optional makes the method both simpler and easier to call. Also, the fact that your value is wrapped inside an Optional is now an implementation detail that's hidden from the user.
 
+If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional fifty times, or doing that once? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
+    
 In this particular case, you can even take advantage of the fact that the Integer wraps a primitive value:
 
     public void setLockoutDuration(int lockoutDuration) {
@@ -247,22 +247,22 @@ In this particular case, you can even take advantage of the fact that the Intege
 
 (This won't help for most types.)
 
-The cleanest way to avoide this bug is by avoiding the use of Optional class member at all:
+The cleanest way to avoid this bug is by avoiding the use of Optional class member at all:
 
     public class AuthenticationResult {
         // ...
-        private Integer lockoutDuration; // No loner wrapped in Optional
+        private Integer lockoutDuration;                        // No longer wrapped in Optional
 
         public Optional<Integer> getLockoutDurationOpt() {
             return Optional.ofNullable(lockoutDuration);
         }
         
         public Integer getLockoutDuration() {
-            return lockoutDuration;
+            return lockoutDuration;                             // No need for null checking
         }
 
         public void setLockoutDuration(lockoutDurationOrNull) {
-            lockoutDuration = lockoutDurationOrNull;
+            lockoutDuration = lockoutDurationOrNull;            // No need for null checking
         }
     }
     
