@@ -252,11 +252,7 @@ The cleanest way to avoid this bug is by avoiding the use of Optional class memb
             lockoutDuration = lockoutDurationOrNull;            // No need for null checking
         }
         
-        public Integer getLockoutDuration() {
-            return lockoutDuration;                             // User may choose this when confident it's not null
-        }
-
-        public Optional<Integer> getLockoutDurationOpt() {      // For function chaining
+        public Optional<Integer> getLockoutDurationOpt() {
             return Optional.ofNullable(lockoutDuration);        // The only place where we use Optional
         }
     }
