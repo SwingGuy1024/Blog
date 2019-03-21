@@ -188,13 +188,13 @@ This last method behaves the same way as the first one. Both throw a NullPointer
     somethingElse.setSomeProperty(result, authenticationResult.getSomeProperty());
     somethingElse.setResultDuration(result, authenticationResult.getLockoutDuration().get());
 
-The second line threw a NullPointerException. Why? We know that authenticationResult isn't null, because that would have thrown an exception on the first line. So is it because the returned Optional<Integer> is empty? Or does `getLockoutDuration` return null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the call to `getLockoutDuration()` is returning null.
+The second line threw a NullPointerException. Why? We know that authenticationResult isn't null, because that would have thrown an exception on the first line. So is it because the returned Optional<Integer> is empty? Or does `getLockoutDuration` return null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
 
 The problem is in the implementation of the lockoutDuration property. They never initialize the value, so the Optional object doesn't hold a null value, it's actually null. 
 
 When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
 
-(The possibility of a the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write.)
+(By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write.)
 
 The Optional<lockoutDuration> property may be null because the class member was left uninitialized. If you're going to  wrap member values inside Optionals, it's wise to always initialize them. But you should also take care that the setter doesn't set them to null.
 
@@ -232,7 +232,7 @@ It makes more sense to leave the Optional out of the setter:
 
 Removing Optional makes the method both simpler and easier to call. Also, the fact that your value is wrapped inside an Optional is now an implementation detail that's hidden from the user.
 
-If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional each time, which means fifty times? Or doing that once in the setter? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
+If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional each time, which means maybe fifty times? Or doing that once in the setter? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
     
 In this particular case, you can even take advantage of the fact that the Integer wraps a primitive value:
 
@@ -248,17 +248,17 @@ The cleanest way to avoid this bug is by avoiding the use of Optional class memb
         // ...
         private Integer lockoutDuration;                        // No longer wrapped in Optional
 
-        public Optional<Integer> getLockoutDurationOpt() {
-            return Optional.ofNullable(lockoutDuration);
-        }
-        
-        public Integer getLockoutDuration() {
-            return lockoutDuration;                             // No need for null checking
-        }
-
         public void setLockoutDuration(lockoutDurationOrNull) {
             lockoutDuration = lockoutDurationOrNull;            // No need for null checking
         }
+        
+        public Integer getLockoutDuration() {
+            return lockoutDuration;                             // User may choose this when confident it's not null
+        }
+
+        public Optional<Integer> getLockoutDurationOpt() {      // For function chaining
+            return Optional.ofNullable(lockoutDuration);        // The only place where we use Optional
+        }
     }
-    
-Here, the code and the method signatures are as simple as they can get. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. Holding the member inside an Optional has no advantages. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
+
+Here, the code and the method signatures are as simple as they can get. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. Holding the member inside an Optional has no advantages. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
