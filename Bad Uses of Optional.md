@@ -168,10 +168,12 @@ This last method behaves the same way as the first one. Both throw a NullPointer
 
 This one, I don't even know how it made it into production. In this example, a NullPointerException is thrown on the second line. Can you figure out why?
 
-    something.setSomeProperty(result, authenticationResult.getSomeProperty());
-    something.setResultDuration(result, authenticationResult.getLockoutDuration().get()); // NullPointerException
+    thing.setSomeProperty(result, authenticationResult.getSomeProperty());
+    thing.setResultDuration(result, authenticationResult.getLockoutDuration().get()); // NullPointerException
 
-Before you look at the AuthenticationResult class, remember that the get() method may throw a NoSuchElementException. And we know that `something` isn't null, or the first line would have thrown the Exception. So the problem is that getLockoutDuration() is returning null. Here's the class:
+Before you look at the AuthenticationResult class, remember that the get() method may throw a NoSuchElementException. And we know that `thing` isn't null, or the Exception would have been thrown on the first line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
+
+Here's the class:
 
 **Buggy AuthenticationResult.class**
 
@@ -187,8 +189,6 @@ Before you look at the AuthenticationResult class, remember that the get() metho
             this.lockoutDuration = lockoutDuration;
         }
     }
-
-My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
 
 Of course it's null. They never initialize the Optional value. When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
 
