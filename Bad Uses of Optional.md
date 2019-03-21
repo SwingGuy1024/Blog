@@ -68,7 +68,7 @@ The first use is needlessly verbose, and seems to be done just to avoid ever usi
 
 This is cleaner, more readable, and even faster. 
 
-The second use of Optional is necessary. But it's necessary not because they're doing functional programming, but merely because someone wrote a method that takes an `Optional<Widget>` as a parameter.
+The second use of Optional is necessary. But it's necessary not because they're doing function chaining, but merely because someone wrote a method that takes an `Optional<Widget>` as a parameter.
 
 To make matters worse, there's a repeated bug in lines 02 and 08 that didn't get caught. It says `Optional.of(widget)`, but it should say `Optional.ofNullable(widget)`! So if a null value ever gets passed into this method, it will throw a `NullPointerException` instead of the `BusinessException` thrown on line 04. But nobody caught this bug because the code that called this *private* method had already made sure that widget was not null, so the test wasn't even necessary.
 
@@ -113,7 +113,7 @@ Many people have written guidelines recommending against using Optional as param
 
 This method uses `Optional` to mean `Required`. So why is the Widget wrapped in an Optional? And what clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But it's clearly not. This method, which asks the user to wrap a required value inside an Optional, has an interface that's both misleading and more verbose to use, since the user must now write `someMethod(Optional.ofNullable(widget))` instead of `someMethod(widget)` A good method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite.
 
-Prior to the invention of Optional, this method could have been written like this:
+Prior to the invention of Optional, the author could have made it clear that the parameter is required by giving it a more decriptive name:
 
     1 private void someMethod(Widget requiredWidget) {
     2   if (requiredWidget == null) {
@@ -157,17 +157,13 @@ Yeah. I've seen this. And lines 2-4 are pretty pointless. The only reason to cal
     3   widget.doSomething();
     4   // ... (More code)
     
-Or you could remove Optional, and get a method that's easier to call:
-
-    1 private void someMethod(Widget widget) {
-    2   widget.doSomething();  // throws NullPointerException
-    3   // ... (More code)
-    
-All three of these methods behave exactly the same way, except for which RuntimeException they throw. But the last one takes one line to do what five lines did in the first case. It also gives us an opportunity to clarify the required nature of the parameter. All we have to do is change its name:
+Or, since (once again) the "Optional" parameter is actually required, you could remove Optional, and get a method that's easier to call:
 
     1 private void someMethod(Widget requiredWidget) {
     2   requiredWidget.doSomething();  // throws NullPointerException
     3   // ... (More code)
+    
+This last method behaves the same way as the first one. Both throw a NullPointerException if the parameter is null. But it takes one line to do what five lines did in the first case. It also gave us an opportunity to clarify the required nature of the parameter with a better name.
 
 ### Example 6: Self Defeating
 (Work in progress)
