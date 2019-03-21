@@ -183,15 +183,14 @@ This last method behaves the same way as the first one. Both throw a NullPointer
         }
     }
 
-**Buggy Usage Example**
+**Usage**
 
-    setResultLockoutDuration(result, authenticationResult.getLockoutDuration().get());
+    somethingElse.setSomeProperty(result, authenticationResult.getSomeProperty());
+    somethingElse.setResultDuration(result, authenticationResult.getLockoutDuration().get());
 
-This usage threw a NullPointerException. Why? We could verify that authenticationResult wasn't null. So is it because the Optional<Integer> is empty? Or does `getLockoutDuration` return null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the call to `getLockoutDuration()` is returning null.
+The second line threw a NullPointerException. Why? We know that authenticationResult isn't null, because that would have thrown an exception on the first line. So is it because the returned Optional<Integer> is empty? Or does `getLockoutDuration` return null? My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the call to `getLockoutDuration()` is returning null.
 
-So there are two bugs in the usage: First, They didn't test the value of `lockoutDuration` for null, which shouldn't even be necessary. Second, even if it wasn't null, it would have been empty, so their call to get() would have thrown a `NoSuchElementException`.
-
-On top of that, the class is buggy, because the Optional<Integer> that wraps a possibly null value may itself be null.
+The problem is in the implementation of the lockoutDuration property. They never initialize the value, so the Optional object doesn't hold a null value, it's actually null. 
 
 When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
 
@@ -233,7 +232,7 @@ It makes more sense to leave the Optional out of the setter:
 
 Removing Optional makes the method both simpler and easier to call. Also, the fact that your value is wrapped inside an Optional is now an implementation detail that's hidden from the user.
 
-If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional fifty times, or doing that once? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
+If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional each time, which means fifty times? Or doing that once in the setter? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
     
 In this particular case, you can even take advantage of the fact that the Integer wraps a primitive value:
 
