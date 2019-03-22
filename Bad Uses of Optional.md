@@ -171,7 +171,7 @@ This one, I don't even know how it made it into production. In this example, a N
     thing.setSomeProperty(result, authenticationResult.getSomeProperty());
     thing.setResultDuration(result, authenticationResult.getLockoutDuration().get()); // NullPointerException
 
-Before you look at the AuthenticationResult class, remember that the get() method may throw a NoSuchElementException. And we know that `thing` isn't null, or the Exception would have been thrown on the first line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
+Before you look at the AuthenticationResult class, remember that the get() method may throw a NoSuchElementException. And we know that `thing` and `authenticationResult` aren't null, or the Exception would have been thrown on the first line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
 
 Here's the class:
 
@@ -190,11 +190,11 @@ Here's the class:
         }
     }
 
-Of course it's null. They never initialize the Optional value. When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.)
+Of course it's null. They never initialize the Optional value. When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.) Ironically, the Optional wrapper is never optional.
 
-(By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write. I'm not sure how this class made it into production.)
+(By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write. But they often get overlooked.)
 
-If you're going to  wrap member values inside Optionals, it's wise to always initialize them. But you should also take care that the setter doesn't set them to null.
+How can we rewrite this class? It's often wise to initialize variables, but you should also take care that the setter doesn't set them to null.
 
     private Optional<Integer> lockoutDuration = Optional.empty();
 
