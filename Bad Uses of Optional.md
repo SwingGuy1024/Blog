@@ -164,18 +164,15 @@ Or, since (once again) the "Optional" parameter is actually required, you could 
 This last method behaves the same way as the first one. Both throw a NullPointerException if the parameter is null. But it takes one line to do what five lines did in the first case. It also gave us an opportunity to clarify the required nature of the parameter with a better name.
 
 ### Example 6: Self Defeating
-(Work in progress)
 
-This one, I don't even know how it made it into production. In this example, a NullPointerException is thrown on the second line. Can you figure out why?
+This one, I don't even know how it made it into production. In this example, a NullPointerException is thrown on the second line. There are four places in the line where a null will cause an Exception. Can you figure out where it comes?
 
     thing.setSomeProperty(result, authenticationResult.getSomeProperty());
     thing.setResultDuration(result, authenticationResult.getLockoutDuration().get()); // NullPointerException
 
-Before you look at the AuthenticationResult class, remember that the get() method may throw a NoSuchElementException. And we know that `thing` and `authenticationResult` aren't null, or the Exception would have been thrown on the first line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
+If you can't narrow it down, notice that `thing` and `authenticationResult` aren't null, or the exception would have been thrown on the first line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
 
 Here's the class:
-
-**Buggy AuthenticationResult.class**
 
     public class AuthenticationResult {
         // ...
@@ -255,4 +252,4 @@ The cleanest way to avoid this bug is by avoiding the use of Optional class memb
         }
     }
 
-Here, the code and the method signatures are as simple as they can get. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. Holding the member inside an Optional has no advantages. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
+Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. Holding the member inside an Optional has no advantages. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
