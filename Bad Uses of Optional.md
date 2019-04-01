@@ -259,3 +259,26 @@ The cleanest way to avoid this bug is by avoiding the use of Optional class memb
     }
 
 Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. Holding the member inside an Optional has no advantages here. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
+
+### Example 7: Silly, but Harmless
+
+Here's a very simple method, with a redundent method call. Can you spot it?
+
+    @Override
+    public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
+        String propertyAsString = getPropertyAsString(tenant, key.name());
+        return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
+    }
+
+If you can't spot it, here's a question. Why does it test `propertyAsString` for null? It certainly makes sense. But it's not necessary. It's also done by the call to `ofNullable()`. So this could have been written like this:
+
+        return Optional.ofNullable(key.parse(propertyAsString));
+
+Now it works fine as a single line:
+
+    @Override
+    public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
+        return Optional.ofNullable(key.parse(getPropertyAsString(tenant, key.name())));
+    }
+
+I was surprised to discover that my IDE does not have a code inspection that catches this.
