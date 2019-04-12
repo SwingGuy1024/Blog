@@ -298,3 +298,9 @@ I was surprised to discover that my IDE does not have a code inspection that cat
             legacyUserService.deleteLegacyUser(email);
         }
     }
+    
+This may be changed to this:
+
+    private void deleteLegacyUserIfExists(String email) {
+        legacyUserService.getLegacyUser(email).ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
+    }
