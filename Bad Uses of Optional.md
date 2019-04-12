@@ -286,6 +286,6 @@ I was surprised to discover that my IDE does not have a code inspection that cat
 ### Quick Takes:
     SecurityQuestion securityQuestion = securityQuestionTblDao.findSecurityQuestionById(1).orElse(null);
     if (securityQuestion == null) {
-        securityQuestion = securityQuestionTblDao.findSecurityQuestionByQuestion(CHILD_BEST_FRIEND).orElse(null);
+        securityQuestion = securityQuestionTblDao.findSecurityQuestion(CHILD_BEST_FRIEND).orElse(null);
     }
     securityQuestion.setSecurityAnswer("test");
