@@ -284,8 +284,17 @@ Now it works fine as a single line:
 I was surprised to discover that my IDE does not have a code inspection that catches this.
 
 ### Quick Takes:
+1.
     SecurityQuestion securityQuestion = securityQuestionTblDao.findSecurityQuestionById(1).orElse(null);
     if (securityQuestion == null) {
         securityQuestion = securityQuestionTblDao.findSecurityQuestion(CHILD_BEST_FRIEND).orElse(null);
     }
     securityQuestion.setSecurityAnswer("test");
+
+2.
+    private void deleteLegacyUserIfExists(String email) {
+        LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
+        if (null != legacyUser) {
+            legacyUserService.deleteLegacyUser(email);
+        }
+    }
