@@ -263,38 +263,38 @@ Here, the code and the method signatures are as simple as they can get. We never
 ### Quick Takes:
 1. This one is silly, but harmless. The last line starts out with a redundant test.
 
-    @Override
-    public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
-        String propertyAsString = getPropertyAsString(tenant, key.name());
-        return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
-    }
+       @Override
+       public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
+           String propertyAsString = getPropertyAsString(tenant, key.name());
+           return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
+       }
 
 The test duplicates the work of `ofNullable()`. It stripped out, to get this:
 
-        return Optional.ofNullable(key.parse(propertyAsString));
+    return Optional.ofNullable(key.parse(propertyAsString));
 
 I was surprised to discover that my IDE does not have a code inspection to catch this.
 
 
 2. Your IDE inspections should be able to catch this one.
 
-    SecurityQuestion securityQuestion = securityQuestionTblDao.findSecurityQuestionById(1).orElse(null);
-    if (securityQuestion == null) {
-        securityQuestion = securityQuestionTblDao.findSecurityQuestion(CHILD_BEST_FRIEND).orElse(null);
-    }
-    securityQuestion.setSecurityAnswer("test");
+       SecurityQuestion securityQuestion = securityQuestionTblDao.findSecurityQuestionById(1).orElse(null);
+       if (securityQuestion == null) {
+           securityQuestion = securityQuestionTblDao.findSecurityQuestion(CHILD_BEST_FRIEND).orElse(null);
+       }
+       securityQuestion.setSecurityAnswer("test");
     
 If your IDE doesn't have an inspection to tell you that the last line can produce a `NullPointerException`, find a better IDE. If it does have one, turn it on. 
 
 3. This code is fine, but it doesn't take advantage of what Optional has to offer.
 
-    private void deleteLegacyUserIfExists(String email) {
-        LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
-        if (null != legacyUser) {
-            legacyUserService.deleteLegacyUser(email);
-        }
-    }
-    
+       private void deleteLegacyUserIfExists(String email) {
+           LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
+           if (null != legacyUser) {
+               legacyUserService.deleteLegacyUser(email);
+           }
+       }
+   
 It works, but you may change it to this:
 
     private void deleteLegacyUserIfExists(String email) {
