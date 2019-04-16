@@ -285,13 +285,29 @@ I was surprised to discover that my IDE does not have a code inspection that cat
 
 ### Quick Takes:
 1.
+
+    @Override
+    public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
+        String propertyAsString = getPropertyAsString(tenant, key.name());
+        return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
+    }
+
+That last line is duplicating the work of `ofNullable()`. It should be written like this:
+
+        return Optional.ofNullable(key.parse(propertyAsString));
+
+2.
+
     SecurityQuestion securityQuestion = securityQuestionTblDao.findSecurityQuestionById(1).orElse(null);
     if (securityQuestion == null) {
         securityQuestion = securityQuestionTblDao.findSecurityQuestion(CHILD_BEST_FRIEND).orElse(null);
     }
     securityQuestion.setSecurityAnswer("test");
+    
+If your IDE doesn't have an inspection to tell you that the last line can produce a `NullPointerException`, find a better IDE. If it does have one, turn it on. 
 
-2.
+3.
+
     private void deleteLegacyUserIfExists(String email) {
         LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
         if (null != legacyUser) {
@@ -299,8 +315,10 @@ I was surprised to discover that my IDE does not have a code inspection that cat
         }
     }
     
-This may be changed to this:
+This code works, but you may change it to this:
 
     private void deleteLegacyUserIfExists(String email) {
-        legacyUserService.getLegacyUser(email).ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
+        legacyUserService
+            .getLegacyUser(email).
+            ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
     }
