@@ -111,7 +111,7 @@ Many people have written guidelines recommending against using Optional as param
 
 This method uses `Optional` to mean `Required`. So why is the Widget wrapped in an Optional? And what clarity is being added to the API by using Optional? To anyone reading the JavaDocs, the API implies that null is a valid input value. But it's clearly not. This method, which asks the user to wrap a required value inside an Optional, has an interface that's both misleading and more verbose to use, since the user must now write `someMethod(Optional.ofNullable(widget))` instead of `someMethod(widget)` A good method signature should take care of boilerplate details needed to call the method, to make the call as simple as possible. By using an Optional parameter, this does the opposite.
 
-Prior to the invention of Optional, the author could have made it clear that the parameter is required by giving it a more decriptive name:
+Prior to the invention of Optional, the author could have made it clear that the parameter is required by giving it a more descriptive name:
 
     1 private void someMethod(Widget requiredWidget) {
     2   if (requiredWidget == null) {
@@ -284,7 +284,7 @@ I was surprised to discover that my IDE does not have a code inspection to catch
        }
        securityQuestion.setSecurityAnswer("test");
     
-If your IDE doesn't have an inspection to tell you that the last line can produce a `NullPointerException`, find a better IDE. If it does have one, turn it on. 
+If your IDE doesn't have an inspection to tell you that the last line can produce a `NullPointerException`, find a better IDE. If it does have one, turn it on. (In IntelliJ, it's called *Constant Conditions and Exceptions*.)
 
 3. This code is fine, but it doesn't take advantage of what Optional has to offer.
 
