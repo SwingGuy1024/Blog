@@ -269,7 +269,7 @@ Here, the code and the method signatures are as simple as they can get. We never
            return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
        }
 
-The test duplicates the work of `ofNullable()`. It stripped out, to get this:
+The test duplicates the work of `ofNullable()`. It should be stripped out, to get this:
 
     return Optional.ofNullable(key.parse(propertyAsString));
 
