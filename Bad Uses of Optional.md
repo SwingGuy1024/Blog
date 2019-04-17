@@ -104,7 +104,7 @@ This also breaks the convention I discussed in the opening, where the user is gi
 Many people have written guidelines recommending against using Optional as parameter methods, but people do it anyway. A common variation of the code in example 1 looks like this:
 
     1 private void someMethod(Optional<Widget> widgetOpt) {
-    2   if (!widgetOpt.isPresent) {
+    2   if (!widgetOpt.isPresent()) {
     3     throw new BusinessException("Missing Widget");
     4   }
     5   // ... (More code)
@@ -141,7 +141,7 @@ Simply renaming the parameter provides the same information as Optional. Before 
 
 ### Example 5: Pointless
     1 private void someMethod(Optional<Widget> widgetOpt) {
-    2   if (!widgetOpt.isPresent) {
+    2   if (!widgetOpt.isPresent()) {
     3     throw new NullPointerException();
     4   }
     5   Widget widget = widgetOpt.get();
