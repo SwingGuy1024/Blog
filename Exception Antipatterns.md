@@ -21,3 +21,32 @@ bug had no idea that the preceeding exception was the important one to log, so I
 
 --------
 
+	public static void main(String[] args) {
+		new BadPractices().example();
+	}
+	
+	private void example() {
+		String s = getString();
+		System.out.println("String is " + s);
+		
+		s = "Second String";
+		try {
+			s = getString();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("String is " + s);
+	}
+	
+	private String getString() {
+		String s = "First string";
+		try {
+			s = badMethod();
+		} finally {
+			return s;
+		}
+	}
+	
+	private String badMethod() throws IOException {
+		throw new RuntimeException("bad exception");
+	}
