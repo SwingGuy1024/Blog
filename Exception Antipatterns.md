@@ -18,35 +18,3 @@ I was asked to debug a NullPointerException, with a stack trace. But that except
 the null value returned by this method. Of course, a more useful stack trace was right there in the log, but whoever filed the
 bug had no idea that the preceeding exception was the important one to log, so I got 
 
-
---------
-
-	public static void main(String[] args) {
-		new BadPractices().example();
-	}
-	
-	private void example() {
-		String s = getString();
-		System.out.println("String is " + s);
-		
-		s = "Second String";
-		try {
-			s = getString();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.out.println("String is " + s);
-	}
-	
-	private String getString() {
-		String s = "First string";
-		try {
-			s = badMethod();
-		} finally {
-			return s;
-		}
-	}
-	
-	private String badMethod() throws IOException {
-		throw new RuntimeException("bad exception");
-	}
