@@ -19,15 +19,15 @@ If you're not clear on how to handle exceptional cases, there's actually a simpl
         return null;
     }
 
-I was asked to debug a NullPointerException in a service, but the stack trace in the bug report didn't help, because it was caused by the null value returned by this method. Of course, a more useful stack trace was right there in the log, but whoever filed the bug didn't know that, so I got the wrong stack trace in the bug report.
+I was asked to debug a NullPointerException in a web service, but the stack trace in the bug report didn't help, because it was caused by the null value returned by this method. Of course, a more useful stack trace was right there in the log, but whoever filed the bug didn't know that, so I got the wrong stack trace in the bug report.
 
 I'm not sure what the developer was thinking in returning null, which is usually a useless value. Maybe s/he assumed that the calling method would test it for null. But there's really no point to this, especially in a web server. If the developer had just ignored the exception, it would have been logged anyway, and my bug report would have had the correct stack trace.
 
-A second problem is that it catches Exception. When I see this, I have no way of knowing if a checked exception is getting thrown, so I always change it to RuntimeException, to see if I get a compiler error. In this case, I didn't.
+A second problem is that it catches Exception, rather than a more specific Exceptoin. When I see this, I have no way of knowing if a checked exception is getting thrown, so I always change it to RuntimeException, to see if I get a compiler error. In this case, I didn't.
 
-Was developer was just being conscientious, thinking that it's a better practice to catch and log any Exceptions? But it's not. Exceptions will get logged. As developers, we should trust that the calling code will correctly log any exceptions that our code throws. And if they don't, that's the first bug that needs to get fixed.
+Was the developer was just being conscientious, thinking that it's a better practice to catch and log any Exceptions? But it's not. The NullPointerException got logged. That happens automatically. As developers, we should trust that the calling code will correctly log any exceptions that our code throws. And if they don't, that's the first bug that needs to get fixed.
 
-Here's a rule for whether you should throw null. Does the documentation specify a meaning for a null return value? Sometimes it does. If it doesn't, you should never return null. If you do, you should specify a clear meaning that goes beyond "something went wrong."
+So when is null an acceptable return value? Looking through the APIs that come with the JDK, you may notice that null is typically returned when a method is searching for something that might not be there, like the `Map.get()` method. Since JDK 1.8, many new methods will now return an Optional instead. But Optional is not a good alternative for the method above. It shouldn't be used to mean something went wrong. The method above is supposed to always return a valid object. It will only return null if there's a bug in the code, or if it recieved invalid input. The proper behavior for invalid input is to throw an Exception, not to return null.
 
 ## No Exceptions in Released Code ##
 
