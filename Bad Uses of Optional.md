@@ -128,7 +128,14 @@ Here's a case where the use of Optional clearly does not mislead the user.
     2   final Widget widget = widgetOpt.orElseGet(() -> getDefaultWidget());
     3   // ... (More code)
 
-Here, finally, we can say that Optional is adding clarity to the API. Use of null instead of a Widget instance is actually allowed. Here, the API does not mislead anyone. Of course, users who choose to use null must be careful not to call `Optional.of(widget)`. Instead, they should use `Optional.ofNullable(widget)` or `Optional.empty()`, but that's a fail-fast mistake, so it will get caught early. Unfortunately, so many developers wrap required parameters inside Optional, that the meaning of this occasional valid use will often get lost anyway. And, there's a simpler way to write the API that doesn't add verbosity to the calling method:
+Here, finally, we can say that Optional is adding clarity to the API. Use of null instead of a Widget instance is actually allowed. Here, the API does not mislead anyone. Of course, users who choose to use null must be careful not to call `Optional.of(widget)`. Instead, they should use `Optional.ofNullable(widget)` or `Optional.empty()`, but that's a fail-fast mistake, so it will get caught early. Unfortunately, so many developers wrap required parameters inside Optional, that the meaning of this occasional valid use will often get lost anyway.
+
+But before Optional was invented, there was already a widely-used way to specify a parameter as optional: Overloading!
+
+    private void someMethod() { someMethod(null) }
+    private void someMethod(Widget widget) { ... }
+
+And, there's a simpler way to let the user know that `widget` may be null, that doesn't add verbosity to the calling method:
 
     1 private void someMethod(final Widget widgetOrNull) {
     2   final Widget widget = (widgetOrNull == null) ? getDefaultWidget() : widgetOrNull;
@@ -148,20 +155,13 @@ Simply renaming the parameter provides the same information as Optional. Before 
     6   widget.doSomething();
     7   // ... (More code)
     
-Yeah. I've seen this. And lines 2-4 are pretty pointless. The only reason to call `isPresent()` on line 2 is to prevent a NoSuchElementException on line 5. So it prevents the NoSuchElementException by throwing a NullPointerException instead! A case could be made that this is more readable, because the throw is now explicit, but readability could be accomplished with a simple comment:
-
-    1 private void someMethod(Optional<Widget> widgetOpt) {
-    2   Widget widget = widgetOpt.get(); // throws NoSuchElementException
-    3   widget.doSomething();
-    4   // ... (More code)
-    
-Or, since (once again) the "Optional" parameter is actually required, you could remove Optional, and get a method that's easier to call:
+Yeah. I've seen this. Once again, Optional means Required. And lines 2-4 are pointless. Before `Optional` was invented, this would have behaved exactly the same way:
 
     1 private void someMethod(Widget requiredWidget) {
-    2   requiredWidget.doSomething();  // throws NullPointerException
+    2   requiredWidget.doSomething();  // may throw NullPointerException
     3   // ... (More code)
     
-This last method behaves the same way as the first one. Both throw a NullPointerException if the parameter is null. But it takes one line to do what five lines did in the first case. It also gave us an opportunity to clarify the required nature of the parameter with a better name.
+This one also throws a NullPointerException if the parameter is null. But it takes one line to do what five lines did in the first case. It also gave us an opportunity to clarify the required nature of the parameter with a better name. Although "required" should be implicit.
 
 ### Example 6: Self Defeating
 
@@ -221,7 +221,7 @@ Each of these is an improvement. They are far more robust. The `NullPointerExcep
 
 It makes more sense to leave the Optional out of the setter parameter. This also means you can remove the null test from the getter:
 
-    private Optional<Integer> lockoutDuration;
+    private Optional<Integer> lockoutDuration = Optional.empty();
 
     public void setLockoutDuration(Integer lockoutDurationOrNull) {
         this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull); // can't set it to null.
@@ -258,7 +258,9 @@ The cleanest way to avoid this bug is by avoiding the use of Optional class memb
         }
     }
 
-Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. Holding the member inside an Optional has no advantages here. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
+Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
+
+That said, there is actually one advantage to holding an Optional value as a member. Optional is an immutable class, so the instance may be safely shared between multiple threads. If the getter will be called often, it's marginally faster to create it once and keep reusing the same object. But there's no reason to use it as a method parameter.
 
 ### Quick Takes:
 1. This one is silly, but harmless. The last line starts out with a redundant test.
@@ -290,7 +292,7 @@ If your IDE doesn't have an inspection to tell you that the last line can produc
 
        private void deleteLegacyUserIfExists(String email) {
            LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
-           if (null != legacyUser) {
+           if (legacyUser != null) {
                legacyUserService.deleteLegacyUser(email);
            }
        }
@@ -299,6 +301,6 @@ It works, but you may change it to this:
 
     private void deleteLegacyUserIfExists(String email) {
         legacyUserService
-            .getLegacyUser(email).
-            ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
+            .getLegacyUser(email)
+            .ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
     }
