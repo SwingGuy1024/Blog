@@ -344,18 +344,7 @@ The test duplicates the work of `ofNullable()`. It should be stripped out, to ge
 
 I was surprised to discover that my IDE does not have a code inspection to catch this.
 
-
-2. Your IDE inspections should be able to catch this one.
-
-       SecurityQuestion securityQuestion = securityQuestionTblDao.findSecurityQuestionById(1).orElse(null);
-       if (securityQuestion == null) {
-           securityQuestion = securityQuestionTblDao.findSecurityQuestion(CHILD_BEST_FRIEND).orElse(null);
-       }
-       securityQuestion.setSecurityAnswer("test");
-    
-If your IDE doesn't have an inspection to tell you that the last line can produce a `NullPointerException`, find a better IDE. If it does have one, turn it on. (In IntelliJ, it's called *Constant Conditions and Exceptions*.)
-
-3. This code is fine, but it doesn't take advantage of what Optional has to offer.
+2. This code is fine, but it doesn't take advantage of what Optional has to offer.
 
        private void deleteLegacyUserIfExists(String email) {
            LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
