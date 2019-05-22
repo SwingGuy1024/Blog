@@ -338,7 +338,7 @@ There are no structural differences between these two code blocks. The first is 
            return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
        }
 
-The test duplicates the work of `ofNullable()`. It should be stripped out, to get this:
+The null test duplicates the work of `ofNullable()`. It should be stripped out, to get this:
 
     return Optional.ofNullable(key.parse(propertyAsString));
 
