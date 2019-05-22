@@ -262,6 +262,73 @@ Here, the code and the method signatures are as simple as they can get. We never
 
 That said, there is actually one advantage to holding an Optional value as a member. Optional is an immutable class, so the instance may be safely shared between multiple threads. If the getter will be called often, it's marginally faster to create it once and keep reusing the same object. But there's no reason to use it as a method parameter.
 
+### Example 7: No benefit
+
+Here's a private method to extract the first number from a String like this: `"nnn:nnn:nnn..."
+
+    // "" -> (empty)
+    // "   " -> (empty)
+    // "1234" -> ("1234")
+    // "a:123" -> (empty)
+    // "1:2" -> ("1")
+    private Optional<String> parseSku(String menuSku) {
+        if (StringUtils.isBlank(menuSku)) {
+            return Optional.empty();
+        }
+        if (!StringUtils.contains(menuSku, ":")) {
+            return Optional.of(menuSku);
+        }
+        String[] splitSkuArray = menuSku.split(":");
+        // Note that this test for null us not necessary, an issue that's unrelated to Optional
+        if (splitSkuArray == null || !NumberUtils.isCreatable(splitSkuArray[0])) {
+            return Optional.empty();
+        }
+        return Optional.of(splitSkuArray[0]);
+    }
+
+And here's an example of its usage:
+
+    while (modifierIterator.hasNext()) {
+        Modifier modifier = modifierIterator.next();
+        Optional<String> modifierSkuOptional = parseSku(modifier.getSku());
+        if (!modifierSkuOptional.isPresent() || !posSkuSet.contains(modifierSkuOptional.get())) {
+            modifierIterator.remove();
+        }
+    }
+
+What's striking about this code is that the use of Optional makes it much more verbose, without offering any benefit. This could have been written like this:
+
+    // "" -> (empty)
+    // "   " -> (empty)
+    // "1234" -> ("1234")
+    // "a:123" -> (empty)
+    // "1:2" -> ("1")
+    private String parseSku(String menuSku) {
+        if (StringUtils.isBlank(menuSku)) {
+            return "";
+        }
+        if (!StringUtils.contains(menuSku, ":")) {
+            return menuSku;
+        }
+        String[] splitSkuArray = menuSku.split(":");
+        if (!NumberUtils.isCreatable(splitSkuArray[0])) {
+            return "";
+        }
+        return splitSkuArray[0];
+    }
+    
+    // example usage
+    while (modifierIterator.hasNext()) {
+        Modifier modifier = modifierIterator.next();
+        String modifierSku = parseSku(modifier.getSku());
+        if (modifierSku.isEmpty() || !posSkuSet.contains(modifierSku)) {
+            modifierIterator.remove();
+        }
+    }
+
+There are no structural differences between these two code blocks. The first is very verbose, and offers nothing over the second one. The coder was trying so hard to avoid the dreaded `NullPointerException` that s/he put in a needless null check, as well as needlessly using Optional. In my rewritten version, the empty String plays the role of Optional.empty, which simplifies the code. Optional is presumably being used to avoid null pointer issues that don't even have to arise.
+
+
 ### Quick Takes:
 1. This one is silly, but harmless. The last line starts out with a redundant test.
 
