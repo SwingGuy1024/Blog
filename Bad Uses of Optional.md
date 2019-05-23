@@ -328,6 +328,8 @@ What's striking about this code is that the use of Optional makes it much more v
 
 There are no structural differences between these two code blocks. The first is very verbose, and offers nothing over the second one. The coder was trying so hard to avoid the dreaded `NullPointerException` that s/he put in a needless null check, as well as needlessly using Optional. In my rewritten version, the empty String plays the role of Optional.empty, which simplifies the code. Optional is presumably being used to avoid null pointer issues that don't even have to arise.
 
+As I said in the opening, Optional was created for function chaining. In this example, there is no chaining done, so Optional offers no advantage.
+
 
 ### Quick Takes:
 1. This one is silly, but harmless. The last line starts out with a redundant test.
