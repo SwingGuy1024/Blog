@@ -132,19 +132,19 @@ Here, finally, we can say that Optional is adding clarity to the API. Use of nul
 
 But before Optional was invented, there was already a widely-used way to specify a parameter as optional: Overloading!
 
-    private void someMethod() { someMethod(null) }
+    private void someMethod() { someMethod(getDefaultWidget()); }
     private void someMethod(Widget widget) { ... }
 
-And, there's a simpler way to let the user know that `widget` may be null, that doesn't add verbosity to the calling method:
+Even if you insist in using a single method, there's a simpler way to let the user know that `widget` may be null, that doesn't add verbosity to the calling method:
 
     1 private void someMethod(final Widget widgetOrNull) {
     2   final Widget widget = (widgetOrNull == null) ? getDefaultWidget() : widgetOrNull;
     3   // ... (More code)
 
-Simply renaming the parameter provides the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. 
+Simply renaming the parameter provides the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. Look at the two ways to call a method like this:
 
-    someMethod(Optional.ofNullable(widget));  // The first method should be called like this.
-    someMethod(widget);                       // The second may be called like this.
+    someMethod(Optional.ofNullable(widget));  // This is verbose, every time it gets called.
+    someMethod(widget);                       // This is both simpler and more reliable.
 
 ### Example 5: Pointless
     1 private void someMethod(Optional<Widget> widgetOpt) {
