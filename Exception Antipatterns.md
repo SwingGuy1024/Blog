@@ -2,7 +2,7 @@
 
 These are examples of poor handling of exceptions, all taken from actual production code. Exceptions are often an overlooked issue. Developers will go into a task with a clear idea of how to solve a particular problem, but won't have a clear idea of how to respond if something goes wrong. So, on a multi-person team, often each developer will follow a different approach, so a project will follow many different philosophies for how to handle exceptions.
 
-Many developers are under the impression that one mark of a good developer is in knowing when to catch Exceptions. They catch all sorts of Exceptions, to make sure nothing can go wrong. But this produces a lot of code bloat, and seriously complicates the code. It often hides bugs instead of exposing them so they can be fixed. The mark of a good developer isn't in knowing when to catch an Exception, it's in knowing when to throw one.
+Many developers are under the impression that one mark of a good developer is in knowing when to catch Exceptions. They catch all sorts of Exceptions, to make sure nothing can go wrong. But this produces a lot of code bloat, and seriously complicates the code. It often hides bugs instead of exposing them so they can be fixed. When it comes to Exceptions, the mark of a good developer isn't knowing when to catch one, it's knowing when to throw one.
 
 If you're not clear on how to handle exceptional cases, Here are some guidlines.
 
@@ -17,10 +17,10 @@ Huh? Of course you should worry about bugs! But don't try to supress them by cat
 ## 3. Trust your Exceptions.
 Many developers try to suppress all Exceptions. This sounds like an excellent idea, but they're targeting the wrong thing. It's bugs they should be trying to suppress. Exceptions aren't bugs. Exceptions are the trail of breadcrumbs that lead you to the bugs. Bugs are bad. Exceptions are good. They help you kill the bugs.
 
-In general, checked Exceptions are for conditions that you can expect to see, even when your code is properly written and free of bugs. Unchecked An Exception means there's a bug in your code. Don't hide it by catching an exception. And don't try to recover from it. *There's no recovering from a bug.* Bugs should be fixed, not recovered from. Let it pass through to your UncaughException Handler so you can see it and fix it. 
+In general, checked Exceptions are for conditions that you can expect to see, even when your code is properly written and free of bugs. An unchecked Exception means there's a bug in your code. Don't hide it by catching the exception, fix it. And don't try to recover from it. *There's no recovering from a bug.* Bugs should be fixed, not recovered from. Let it pass through to your `UncaughtExceptionHandler` so you can see it and fix it.
 
-## 4. Invalid Input
-If a function received valid input, it should return a valid result. If it receives invalid input, it should throw an Exception. *The proper behavior for invalid input is to throw an exception.* The invalid input is likely caused by a bug, and the Exception's stack trace will usually help you catch the bug. 
+## 4. Reject Invalid Input
+If a function receives valid input, it should return a valid result. If it receives invalid input, it should throw an Exception. *The proper behavior for invalid input is to throw an exception.* The invalid input is likely caused by a bug, and the Exception's stack trace will usually help you catch the bug. 
 
 ## 4 Validate When Data Enters the System
 Many developers will do quick validation checks at the beginning of a method, throwing an Exception if a parameter is null. These tests are often unnecessary, because they're about to use the object, which will generate a `NullPointerException` anyway. But sometimes a parameter doesn't get used, it just gets set inside an object, to be used later. This may be a good time to validate the object. But a more sensible policy is the Validate data as it comes into a system, usually through external input. 
