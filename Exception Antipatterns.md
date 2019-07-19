@@ -2,7 +2,30 @@
 
 These are examples of poor handling of exceptions, all taken from actual production code. Exceptions are often an overlooked issue. Developers will go into a task with a clear idea of how to solve a particular problem, but won't have a clear idea of how to respond if something goes wrong. So, on a multi-person team, often each developer will follow a different approach, so a project will follow many different philosophies for how to handle exceptions.
 
-If you're not clear on how to handle exceptional cases, there's actually a simple rule to follow. If a function received valid input, it should return a valid result. If it receives invalid input, it should throw an Exception. *The proper behavior for invalid input is to throw an exception.*
+Many developers are under the impression that one mark of a good developer is in knowing when to catch Exceptions. They catch all sorts of Exceptions, to make sure nothing can go wrong. But this produces a lot of code bloat, and seriously complicates the code. It often hides bugs instead of exposing them so they can be fixed. The mark of a good developer isn't in knowing when to catch an Exception, it's in knowing when to throw one.
+
+If you're not clear on how to handle exceptional cases, Here are some guidlines.
+
+## 1. Trust Your Framework.
+Your code should have an UncaughtExceptionHandler to log any uncaught Throwables. If not, all exceptions should be caught  in the outermost layer of your code. You can set it by calling the `Thread.setDefaultUncaughtExceptionHandler()` method, and you can find out if one is set with the `Thread.getDefaultUncaughtExceptionHandler()` method. What this means is that *all exceptions will get logged!* You don't need to catch an Exception just to make sure it gets logged. It will get logged.
+
+Unless it doesn't. This can happen, and it's due to a fairly uncommon bug, but which you should know about. Sometimes, someone up the call stack is catching an Exception and swallowing it without any logging. This is a serious bug, and should be rooted out. Fortunately, once you figure out that an Exception is getting swallowed, you can find the culprit by setting a breakpoint and searching up the call stack for the problem catch statement. Often the problem is because somebody knew an Exception could show up that could be safely ignored, but wrote `catch (Exception e)` instead of catching the specific Exception that they needed to swallow. Bugs like this should always be fixed, so you can go back to trusting your framework.
+
+## 2. Trust Your Code. (Don't Worry about Bugs.)
+Huh? Of course you should worry about bugs! But don't try to supress them by catching exceptions. Supress them by fixing them. In a well-written, bug free piece of code, you won't see any RuntimeExceptions. So don't write code to catch them. If you look through the code of classes in the JDK, you won't find any cases where they say `catch (RuntimeException e).` They don't do this because, when they wrote their code, they assumed they would reach a bug-free state, and none of these catch statements would be necessary. But on a lot of projects, you'll see RuntimeExceptions getting caught all over the place. Once the code is working, these aren't necessary. There will be bugs in your code at first. Let the Exceptions they generate get passed and logged, so you can find them and fix them. 
+
+## 3. Trust your Exceptions.
+Many developers try to suppress all Exceptions. This sounds like an excellent idea, but they're targeting the wrong thing. It's bugs they should be trying to suppress. Exceptions aren't bugs. Exceptions are the trail of breadcrumbs that lead you to the bugs. Bugs are bad. Exceptions are good. They help you kill the bugs.
+
+In general, checked Exceptions are for conditions that you can expect to see, even when your code is properly written and free of bugs. Unchecked An Exception means there's a bug in your code. Don't hide it by catching an exception. And don't try to recover from it. *There's no recovering from a bug.* Bugs should be fixed, not recovered from. Let it pass through to your UncaughException Handler so you can see it and fix it. 
+
+## 4. Invalid Input
+If a function received valid input, it should return a valid result. If it receives invalid input, it should throw an Exception. *The proper behavior for invalid input is to throw an exception.* The invalid input is likely caused by a bug, and the Exception's stack trace will usually help you catch the bug. 
+
+## 4 Validate When Data Enters the System
+Many developers will do quick validation checks at the beginning of a method, throwing an Exception if a parameter is null. These tests are often unnecessary, because they're about to use the object, which will generate a `NullPointerException` anyway. But sometimes a parameter doesn't get used, it just gets set inside an object, to be used later. This may be a good time to validate the object. But a more sensible policy is the Validate data as it comes into a system, usually through external input. 
+
+# Antipatterns
 
 ## 1 Catch, Log, Return null ##
 
@@ -40,6 +63,6 @@ I've worked on projects where we had a rule that exceptions were forbidden in re
             someThing.someMethod(...);
         }
 
-My IDE would warn me that `someThing != null` is always true. It knows because if it was null, the previous call to `getWidget()` would have thrown a NullPointerException. I saw this warning all over the place.
+My IDE would warn me that `someThing != null` is always true. It knows because the previous call to `getWidget()` would have thrown a NullPointerException if it was null. I saw this warning all over the place.
 
 Why did they do this? While this particular application was a client-server application, it wasn't a browser client. It was a stand-alone client written in Java/Swing. So the thinking was that an exception in the client would be seen only by the client, and wouldn't go into the server logs anyway. So the customer would see the exception but we wouldn't. But it would have been a simple task to report all client exceptions back to the server, where we could debug them.
