@@ -22,7 +22,17 @@ In general, checked Exceptions are for conditions that you can expect to see, ev
 ## 4. Trust Your Input
 If a function receives valid input, it should return a valid result. If it receives invalid input, it should throw an Exception. *The proper behavior for invalid input is to throw an exception.* The invalid input is likely caused by a bug, and the Exception's stack trace will usually help you catch the bug.
 
-## 4 Validate When Data Enters the System
+## 5 Trust Your Data
+Yeah, I know. This one is much tougher than any of the others. Problems in the data are the whole reason people catch all those Exceptions that I'm trying to discourage. They're the rotting corpse from which the bugs hatch. On many projects, I've seen people preface every move with `if (someObject != null) {`, being ever cautious that the data is bad. And it often is, even in a running system. It doesn't help that a lot of database tables are filled with optional fields that need to be tested. What's the proper approach? Here are some data guidelines
+### 5.a Validate on Data Entry
+In principal, you shouldn't ever put bad data into your database. So when you pull an object out of a database, you should trust it to be valid. If it's not, if there's a null field that need a valid value, then go back to your database validation methods to see where it failed to get set. And throw an Exception describing the missing data. 
+### 5.b Write Your Requirements into Your Table Design
+Some database columns are allow null values, while others don't. Often, when the database is designed, people default to nullable columns without giving it much thought. This is a bad idea. Instead, you should carefully consider which fields are essential, and mark them as NOT NULL. Then add that information to your JavaDocs, so your users can see which values don't need to be tested. For text fields, prefer empty fields to null values. Then, when you're 
+### 5.c Check for Validity on Retrieval
+This is most important. Don't ask a method to validate its inputs. That's the responsibility of the method that's making the call. 
+
+*(Where do I put this part?)*
+
 Many developers will do quick validation checks at the beginning of a method, throwing an Exception if a parameter is null. These tests are often unnecessary, because they're about to use the object, which will generate a `NullPointerException` anyway. But sometimes a parameter doesn't get used, it just gets set inside an object, to be used later. This may be a good time to validate the object. But a more sensible policy is the Validate data as it comes into a system, usually through external input.
 
 # Antipatterns
