@@ -53,7 +53,7 @@ If a function receives valid input, it should return a valid result. If it recei
 ### 5 Trust Your Data
 Yeah, I know. This one is much tougher than any of the others. Problems in the data are the whole reason people catch all those exceptions that I'm trying to discourage. They're the rotting corpse from which the bugs hatch. On many projects, I've seen people preface every method call with `if (someObject != null) {`, being ever so cautious that the data could be bad. And it often is, even in a running system. It doesn't help that a lot of database tables are filled with optional fields that do need to be tested. What's the proper approach? Here are some data guidelines.
 #### 5.a Validate on Data Entry
-In principal, you shouldn't ever put bad data into your database. So when you pull an object out of a database, you should trust it to be valid. If it's not, if there's a null field that need a valid value, then go back to your database validation methods to see where it failed to get set. And throw an exception describing the missing data.
+In principal, you shouldn't ever put bad data into your database. So when you pull an object out of a database, you should trust it to be valid. If it's not, if there's a null field that need a valid value, then go back to your database validation methods to see where it failed to get set. And throw an exception describing the missing data. The idea here is that *data should be validated when it comes into your applicaiton.* Once it has been validated, trust it. Once again, there will be bugs in your data. You'll find them as you excercise your application.
 #### 5.b Validate if necessary on data retrieval
 I've seen many `if (x != null)` tests on objects taken from the many-end of a one-to-many relationship, which means they couldn't possibley be null. By itself, testing for null is pretty harmless, as long as you throw an exception if the object is not supposed to be null.
 #### 5.c Validate on object modification
@@ -71,7 +71,7 @@ Testing for null and throwing an exception is needed at all. If widget isn't tes
 
     void doSomething(Widget widget, Thing thing, [more parameters]) {
       if (widget != null) {
-        thing.setWidget(widget);
+        thing.setWidget(widget);     // Here, thing is getting modified.
         // ... more code
       } else {
         throw new NullPointerException("Widget is null");
@@ -81,14 +81,14 @@ Testing for null and throwing an exception is needed at all. If widget isn't tes
 Here, the test for null is very useful, because the null object is being saved for later use. When somebody tries to use it, it will generate a NullPointerException that doesn't point back to the place where the null value was set. So here, it is the responsibility of this method to ensure `widget` is a valid object, *because it's being used to modify another object.*
 
 #### 5.d Validation Responsibility Belongs With the Data Supplier
-Methods that begin with the `if (x != null)` check are written with the assumption it's their responsibility to ensure the data is valid. But it's not. Responsibility lies with the method that supplies the data to the methods it calls, and to the deeper methods that they call. Once the data has been supplied, the methods that use it should assume it's valid, which will result in an exception getting thrown if it's not.
+Methods that begin with the `if (x != null)` check are written with the assumption it's their responsibility to ensure the data is valid. But it's not. Responsibility lies with the method that supplies the data to the methods it calls, and to the deeper methods that they call. Once the data has been supplied, the methods that use it and pass it around should assume it's valid, which will result in an exception getting thrown if it's not.
 
 #### An Anecdote
 To illustrate this, let's go back to my original example, with a small modification. I would often see code like this:
 
     1  void doSomething(Widget widget, [more parameters]) {
     2    widget.prepareForSomethingImportant(someData);)
-    3    if (widget != null) {
+    3    if (widget != null) {              // inspection failure here: widget can't be null
     4      widget.doSomethingImportant();
     5      // ... more code
     6    }
@@ -102,6 +102,7 @@ Trust your data. If it's bad, you'll find out. And you'll be able to fix it.
 
 #### A Word about Table Design
 Some database columns are allow null values, while others don't. Often, when the database is designed, people default to nullable columns without giving it much thought. This is a bad idea. Instead, you should carefully consider which fields are essential, and mark them as NOT NULL. Then add that information to your JavaDocs, so your users can see which values don't need to be tested. For text fields, prefer empty fields to null values.
+
 # Antipatterns
 
 ## 1 Catch, Log, Return null ##
