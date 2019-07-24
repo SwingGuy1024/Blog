@@ -8,7 +8,7 @@ On a recent project I joined, I found lots of methods that started out something
       }
     }
     
-The test for null comes from a certain kind of contientious developer, who is trying suppress a possible bug, to ensure no exception will be thrown in production code. But what happens if `widget` is null here? The method will do nothing, and fail silently. An exception would certainly get suppressed, but the bug would remain, hidden from view. There are a lot of developers who write code like this, which can result in bugs safely hidden deep in the code where nobody will ever find them. Is this really wise? 
+The test for null comes from a certain kind of contientious developer, who is trying suppress a possible bug, to ensure no exception will be thrown in production code. But what happens if `widget` is null here? The method will do nothing, and fail silently. An exception would certainly get suppressed, but the bug would remain, hidden from view. There are a lot of developers who write code like this, which can result in bugs safely hidden deep in the code where they will be harder to find. Is this really wise?
 
 Or should we take the opposite approach, writing code to encourage every bug to announce its presence at the earliest opportunity? This is the approach I like to take, and in my experience, it not only results in code that's less buggy, it also produces code that's less complex, easier to debug, and easier to maintain. 
 
