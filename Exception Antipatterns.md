@@ -50,10 +50,15 @@ Remember that an unchecked exception means there's a bug in your code. Don't hid
 ### 4. Trust Your Method Parameters
 If a function receives valid input, it should return a valid result. If it receives invalid input, it should throw an exception. *The proper behavior for invalid input is to throw an exception.* The invalid input is likely caused by a bug, and the exception's stack trace will usually help you catch it. If your method parameters are bad, your code will most likely throw an Exception without any effort on your part. Let it do this.
 
-### 5 Trust Your Data
+### 5. Don't Trust Your Constructor Parameters
+This is the exception to the previous rule. Constructors do have the responsibility to ensure the object is properly constructed. So this follows the same principle that the proper behavior for invalid input is to throw an exception. With methods, this usually happens on its own, as you try to use the parameters. But with constructors, invalid values get set as members, where they will cause bugs long after the constructor has finished its work. In those cases, whatever stack traces they generate won't point back to the code that set the value, they'll just point to the invalid value. 
+
+### 6 Trust Your Data
 Yeah, I know. This one is much tougher than any of the others. Problems in the data are the whole reason people catch all those exceptions that I'm trying to discourage. They're the rotting corpse from which the bugs hatch. On many projects, I've seen people preface every method call with `if (someObject != null) {`, being ever so cautious that the data could be bad. And it often is, even in a running system. It doesn't help that a lot of database tables are filled with optional fields that do need to be tested. What's the proper approach? Here are some data guidelines.
+
 #### 5.a Validate on Data Entry
 In principal, you shouldn't ever put bad data into your database. So when you pull an object out of a database, you should trust it to be valid. If it's not, if there's a null field that need a valid value, then go back to your database validation methods to see where it failed to get set. And throw an exception describing the missing data. The idea here is that *data should be validated when it comes into your applicaiton.* Once it has been validated, trust it. Once again, there will be bugs in your data. You'll find them as you excercise your application.
+
 #### 5.b Validate if necessary on data retrieval
 I've seen many `if (x != null)` tests on objects taken from the many-end of a one-to-many relationship, which means they couldn't possibley be null. By itself, testing for null is pretty harmless, as long as you throw an exception if the object is not supposed to be null.
 #### 5.c Validate on object modification
@@ -83,7 +88,7 @@ Here, the test for null is very useful, because the null object is being saved f
 #### 5.d Validation Responsibility Belongs With the Data Supplier
 Methods that begin with the `if (x != null)` check are written with the assumption it's their responsibility to ensure the data is valid. But it's not. Responsibility lies with the method that supplies the data to the methods it calls, and to the deeper methods that they call. Once the data has been supplied, the methods that use it and pass it around should assume it's valid, which will result in an exception getting thrown if it's not.
 
-#### An Anecdote
+### An Anecdote
 To illustrate this, let's go back to my original example, with a small modification. I would often see code like this:
 
     1  void doSomething(Widget widget, [more parameters]) {
@@ -144,3 +149,90 @@ I've worked on projects where we had a rule that exceptions were forbidden in re
 My IDE would warn me that `someThing != null` is always true. It knows because the previous call to `getWidget()` would have thrown a NullPointerException if it was null. I saw this warning all over the place.
 
 Why did they do this? While this particular application was a client-server application, The client didn't run in a browser. It was a stand-alone client written in Java/Swing. So the thinking was that an exception in the client would be seen only by the client, and wouldn't go into the server logs anyway. So the customer would see the exception but we wouldn't. But it would have been a simple task to report all client exceptions back to the server, where we could debug them.
+
+##### (Borrowed. Rewrite and expand)
+
+Log and Throw
+Example:
+
+catch (NoSuchMethodException e) { LOG.error("Blah", e); throw e; }
+or
+
+catch (NoSuchMethodException e) { LOG.error("Blah", e); throw new MyServiceException("Blah", e); }
+or
+
+catch (NoSuchMethodException e) { e.printStackTrace(); throw new MyServiceException("Blah", e); }
+All of the above examples are equally wrong. This is one of the most annoying error-handling antipatterns. Either log the exception, or throw it, but never do both. Logging and throwing results in multiple log messages for a single problem in the code, and makes life hell for the support engineer who is trying to dig through the logs.
+
+Throwing Exception
+Example:
+
+public void foo() throws Exception {
+This is just sloppy, and it completely defeats the purpose of using a checked exception. It tells your callers "something can go wrong in my method." Real useful. Don't do this. Declare the specific checked exceptions that your method can throw. If there are several, you should probably wrap them in your own exception (see "Throwing the Kitchen Sink" below.)
+
+Throwing the Kitchen Sink
+Example:
+
+public void foo() throws MyException, AnotherException, SomeOtherException, YetAnotherException {
+Throwing multiple checked exceptions from your method is fine, as long as there are different possible courses of action that the caller may want to take, depending on which exception was thrown. If you have multiple checked exceptions that basically mean the same thing to the caller, wrap them in a single checked exception.
+
+Catching Exception
+Example:
+
+try { foo(); } catch (Exception e) { LOG.error("Foo failed", e); }
+This is generally wrong and sloppy. Catch the specific exceptions that can be thrown. The problem with catchingException is that if the method you are calling later adds a new checked exception to its method signature, the developer's intent is that you should handle the specific new exception. If your code just catches Exception (or worse, Throwable), you'll probably never know about the change and the fact that your code is now wrong.
+
+Destructive Wrapping
+Example:
+
+catch (NoSuchMethodException e) { throw new MyServiceException("Blah: " + e.getMessage()); }
+This destroys the stack trace of the original exception, and is always wrong.
+
+Log and Return Null
+Example:
+
+catch (NoSuchMethodException e) { LOG.error("Blah", e); return null; }
+or
+
+catch (NoSuchMethodException e) { e.printStackTrace(); return null; } // Man I hate this one
+Although not always incorrect, this is usually wrong. Instead of returning null, throw the exception, and let the caller deal with it. You should only return null in a normal (non-exceptional) use case (e.g., "This method returns null if the search string was not found.").
+
+Catch and Ignore
+Example:
+
+catch (NoSuchMethodException e) { return null; }
+This one is insidious. Not only does it return nullinstead of handling or re-throwing the exception, it totally swallows the exception, losing the information forever.
+
+Throw from Within Finally
+Example:
+
+try { blah(); } finally { cleanUp(); }
+This is fine, as long as cleanUp() can never throw an exception. In the above example, if blah() throws an exception, and then in the finally block,cleanUp() throws an exception, that second exception will be thrown and the first exception will be lost forever. If the code that you call in a finally block can possibly throw an exception, make sure that you either handle it, or log it. Never let it bubble out of the finally block.
+
+Multi-Line Log Messages
+Example:
+
+LOG.debug("Using cache policy A"); LOG.debug("Using retry policy B");
+Always try to group together all log messages, regardless of the level, into as few calls as possible. So in the example above, the correct code would look like:
+
+LOG.debug("Using cache policy A, using retry policy B");
+Using a multi-line log message with multiple calls tolog.debug() may look fine in your test case, but when it shows up in the log file of an app server with 500 threads running in parallel, all spewing information to the same log file, your two log messages may end up spaced out 1000 lines apart in the log file, even though they occur on subsequent lines in your code.
+
+Unsupported Operation Returning Null
+Example:
+
+public String foo() { // Not supported in this implementation. return null; }
+When you're implementing an abstract base class, and you're just providing hooks for subclasses to optionally override, this is fine. However, if this is not the case, you should throw an UnsupportedOperationExceptioninstead of returning null. This makes it much more obvious to the caller why things aren't working, instead of her having to figure out why her code is throwing some randomNullPointerException.
+
+IgnoringInterruptedException
+Example:
+
+while (true) { try { Thread.sleep(100000); } catch (InterruptedException e) {} doSomethingCool(); }
+InterruptedException is a clue to your code that it should stop whatever it's doing. Some common use cases for a thread getting interrupted are the active transaction timing out, or a thread pool getting shut down. Instead of ignoring theInterruptedException, your code should do its best to finish up what it's doing, and finish the current thread of execution. So to correct the example above:
+
+while (true) { try { Thread.sleep(100000); } catch (InterruptedException e) { break; } doSomethingCool(); }
+Relying on getCause()
+Example:
+
+catch (MyException e) { if (e.getCause() instanceof FooException) { ...
+The problem with relying on the result of getCauseis that it makes your code fragile. It may work fine today, but what happens when the code that you're calling into, or the code that it relies on, changes its underlying implementation, and ends up wrapping the ultimate cause inside of another exception? Now calling getCause may return you a wrapping exception, and what you really want is the result ofgetCause().getCause(). Instead, you should unwrap the causes until you find the ultimate cause of the problem. Apache'scommons-langproject provides ExceptionUtils.getRootCause()to do this easily.
