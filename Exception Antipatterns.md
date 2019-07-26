@@ -99,11 +99,14 @@ To illustrate this, let's go back to my original example, with a small modificat
     6    }
     7  }
 
-In this method, my IDE would give me a warning that the test on line 3 is unnecessary, because `widget` can't be null. (Can you spot why?) The reason is simple. If `widget` was null, it would never reach line 3, becuase a NullPointerException would get thrown on line 2. 
+In this method, my IDE would give me a warning that the test on line 3 is unnecessary, because `widget` can't be null. (Can you spot why?) The reason is simple. If `widget` was null, it would never reach line 3, because a NullPointerException would get thrown on line 2. 
 
-But we weren't seeing this exception, so I decided to dig a little deeper. I set a break point and looked at who called this method. The first thing I noticed was that `widget` had already been tested for null in the previous method. So went one more method up the call stack and I found the same thing. over and over again. It turned out that `widget` had been tested for null eleven times in the previous methods. To top it off, it had been retrieved from the database in a way that already guaranteed it couldn't be null.
+But we weren't seeing this exception, so I decided to dig a little deeper. I set a break point and looked at who called this method. The first thing I noticed was that `widget` had already been tested for null in the previous method. So I went up the call stack and I found the same thing, over and over again. It turned out that `widget` had been tested for null eleven times before reaching this method. To top it off, it had been retrieved from a database in a way that already guaranteed it couldn't be null.
 
-Trust your data. If it's bad, you'll find out. And you'll be able to fix it.
+If it needed validation at all, it was only when it was retrieved from the database. Trust your data. If it's bad, you'll find out. And you'll be able to fix it.
+
+### Favor the More Restrictive Exceptions
+If you say `catch (Exception e)` because you called a method that is declared `throws IOException,` You may find your code catching more than you need. I once spent three hours trying to track down a bug that should have been easy to catch. I finally narrowed it down to a single statement that should have been throwing a `NullPointerException,` which I was mysteriously not seeing. It turned out that my exception was getting caught and ignored higher up the call stack, because somebody had caught all exceptions instead of just catching the IOException that his code could throw. This illustrates how saying `catch (Exception e)` or `throws Exception` will actually run the risk of introducing new bugs. 
 
 #### A Word about Table Design
 Some database columns are allow null values, while others don't. Often, when the database is designed, people default to nullable columns without giving it much thought. This is a bad idea. Instead, you should carefully consider which fields are essential, and mark them as NOT NULL. Then add that information to your JavaDocs, so your users can see which values don't need to be tested. For text fields, prefer empty fields to null values.
@@ -150,19 +153,30 @@ My IDE would warn me that `someThing != null` is always true. It knows because t
 
 Why did they do this? While this particular application was a client-server application, The client didn't run in a browser. It was a stand-alone client written in Java/Swing. So the thinking was that an exception in the client would be seen only by the client, and wouldn't go into the server logs anyway. So the customer would see the exception but we wouldn't. But it would have been a simple task to report all client exceptions back to the server, where we could debug them.
 
+## Log and Throw ##
+*Example:*
+
+    catch (NoSuchMethodException e) { LOG.error("Blah", e); throw e; }
+or
+
+    catch (NoSuchMethodException e) { LOG.error("Blah", e); throw new MyServiceException("Blah", e); }
+or
+
+    catch (NoSuchMethodException e) { e.printStackTrace(); throw new MyServiceException("Blah", e); }
+
+Trust your framework. Doing this will result in your exception getting logged twice. Your exception will get logged. If it's a checked exception and you can't recover from it, it's a bug, so feel free to wrap it in a RuntimeException and rethrow it. Some people will say either log it or throw it, but never do both. I see the logic behind this, but I say just throw it, and trust that it will get logged.
+
+## Declaring "throws Exception" ##
+*Example:*
+
+    public void foo() throws Exception {
+
+You can provide more information than that. Always 
+
+This is just sloppy, and it completely defeats the purpose of using a checked exception. It tells your callers "something can go wrong in my method." Real useful. Don't do this. Declare the specific checked exceptions that your method can throw. If there are several, you should probably wrap them in your own exception (see "Throwing the Kitchen Sink" below.)
+
+
 ##### (Borrowed. Rewrite and expand)
-
-Log and Throw
-Example:
-
-catch (NoSuchMethodException e) { LOG.error("Blah", e); throw e; }
-or
-
-catch (NoSuchMethodException e) { LOG.error("Blah", e); throw new MyServiceException("Blah", e); }
-or
-
-catch (NoSuchMethodException e) { e.printStackTrace(); throw new MyServiceException("Blah", e); }
-All of the above examples are equally wrong. This is one of the most annoying error-handling antipatterns. Either log the exception, or throw it, but never do both. Logging and throwing results in multiple log messages for a single problem in the code, and makes life hell for the support engineer who is trying to dig through the logs.
 
 Throwing Exception
 Example:
