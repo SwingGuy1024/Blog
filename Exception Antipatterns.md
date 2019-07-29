@@ -139,7 +139,7 @@ A second problem is that it catches exception, rather than a more specific Excep
 
 Was the developer was just being conscientious, thinking that it's a better practice to catch and log any exceptions? But it's not. The NullPointerException got logged. That happens automatically. As developers, we should trust that the calling code will correctly log any exceptions that our code throws. And if they don't, that's the first bug that needs to get fixed.
 
-So when is null an acceptable return value? Looking through the APIs that come with the JDK, you may notice that null is typically returned when a method is searching for something that might not be there, like the `Map.get()` method. Since JDK 1.8, many new methods will now return an Optional instead. But Optional is not a good alternative for the method above. It shouldn't be used to mean something went wrong. The method above is supposed to always return a valid object. It will only return null if there's a bug in the code, or if it recieved invalid input. The proper behavior for invalid input is to throw an exception, not to return null.
+So when is null an acceptable return value? Looking through the APIs that come with the JDK, you may notice that null is typically returned when a method is searching for something that might not be there, like the `Map.get()` method. Since JDK 1.8, many new methods will now return an Optional instead. But Optional is not a good alternative for the method above. It shouldn't be used to mean something went wrong. The method above is supposed to always return a valid object. It will only return null if there's a bug in the try block, or if it recieved invalid input. The proper behavior for invalid input is to throw an exception, not to return null.
 
 ## Avoiding Exceptions ##
 
@@ -167,7 +167,8 @@ or
 
     catch (NoSuchMethodException e) { e.printStackTrace(); throw new MyServiceException("Blah", e); }
 
-Trust your framework. Doing this will result in your exception getting logged twice. Your exception will get logged. If it's a checked exception and you can't recover from it, it's a bug, so feel free to wrap it in a RuntimeException and rethrow it. Some people will say either log it or throw it, but never do both. I see the logic behind this, but I say just throw it, and trust that it will get logged.
+Trust your framework. Doing this will result in your exception getting logged twice. Your exception will get logged. If it's a checked exception and you can't recover from it, it's 
+, so feel free to wrap it in a RuntimeException and rethrow it. Some people will say either log it or throw it, but never do both. I see the logic behind this, but I say just throw it, and trust that it will get logged.
 
 ## Declaring "throws Exception" ##
 *Example:*
