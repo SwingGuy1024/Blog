@@ -1,3 +1,5 @@
+*This is a work in progress. I have a lot to do on it still. At this point, it should be read as an incomplete rough draft. *
+
 # Introduction
 On a recent project I joined, I found lots of methods that started out something like this:
 
