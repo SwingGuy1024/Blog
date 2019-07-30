@@ -141,52 +141,64 @@ Was the developer was just being conscientious, thinking that it's a better prac
 
 So when is null an acceptable return value? Looking through the APIs that come with the JDK, you may notice that null is typically returned when a method is searching for something that might not be there, like the `Map.get()` method. Since JDK 1.8, many new methods will now return an Optional instead. But Optional is not a good alternative for the method above. It shouldn't be used to mean something went wrong. The method above is supposed to always return a valid object. It will only return null if there's a bug in the try block, or if it recieved invalid input. The proper behavior for invalid input is to throw an exception, not to return null.
 
-## Avoiding Exceptions ##
+## Preventing Exceptions ##
 
-I've worked on projects where we had a rule that exceptions were forbidden in released code. This led to a lot of code where we checked nearly all returned values for null. This led to some comical warnings issued by my IDE. For example I often saw cases like this:
+I've worked on projects where we had a rule that exceptions were forbidden in released code. This led to a lot of code where we checked nearly everything for null before using it, like this.
 
-    public void someMethod(Thing someThing, ...) {
-        Widget widget = someThing.getWidget();
-        ...
-        if (someThing != null) {
-            someThing.someMethod(widget, ...);
+    public void someMethod(Widget widget, ...) {
+        if (widget != null) {
+            widget.someMethod(something, ...);
         }
+    }
 
-My IDE would warn me that `someThing != null` is always true. It knows because the previous call to `getWidget()` would have thrown a NullPointerException if it was null. I saw this warning all over the place.
-
-Why did they do this? While this particular application was a client-server application, The client didn't run in a browser. It was a stand-alone client written in Java/Swing. So the thinking was that an exception in the client would be seen only by the client, and wouldn't go into the server logs anyway. So the customer would see the exception but we wouldn't. But it would have been a simple task to report all client exceptions back to the server, where we could debug them.
+If Widget is null, this method won't throw an exception, it will fail silently. The NullPointerException that gets suppressed will tell you where the bug is. Don't suppress it.
 
 ## Log and Throw ##
-*Example:*
+*3 Examples:*
 
     catch (NoSuchMethodException e) { LOG.error("Blah", e); throw e; }
-or
+    catch (NoSuchMethodException e) { LOG.error("Blah", e); throw new SomeGenericException("message", e); }
+    catch (NoSuchMethodException e) { e.printStackTrace(); throw new SomeGenericException("message", e); }
 
-    catch (NoSuchMethodException e) { LOG.error("Blah", e); throw new MyServiceException("Blah", e); }
-or
+Trust your framework. Your exception will get logged. Doing this will result in your exception getting logged twice. If it's a checked exception and you can't recover from it, it's due to a bug. You can wrap it in an unchecked exception and rethrow it. Some people will say either log it or throw it, but never do both. I see the logic behind this, but I say just throw it, and trust that it will get logged.
 
-    catch (NoSuchMethodException e) { e.printStackTrace(); throw new MyServiceException("Blah", e); }
+## Destructive Wrapping ##
+*Example:*
 
-Trust your framework. Doing this will result in your exception getting logged twice. Your exception will get logged. If it's a checked exception and you can't recover from it, it's 
-, so feel free to wrap it in a RuntimeException and rethrow it. Some people will say either log it or throw it, but never do both. I see the logic behind this, but I say just throw it, and trust that it will get logged.
+    catch (NoSuchMethodException e) { throw new SomeGenericException(e.getMessage()); }
+
+This swallows the stack trace of the original exception. Instead, pass the original exception to the constructor:
+
+    catch (NoSuchMethodException e) { throw new SomeGenericException(e.getMessage(), e); }
+
+Sometimes the exception you need to throw doesn't have a constructor with a cause parameter. In that case, you can pass it by using the `initCause()` method in a chained call:
+
+    catch (NoSuchMethodException e) { throw new SomeGenericException(e.getMessage()).initCause(e); }
+
+## Catch Exception ##
+Example:
+
+    try { 
+      doSomeStuff();
+    } catch (Exception e) {
+      // try to recover, or maybe log something
+    }
+
+Whenever I see this, I always wonder if there is some specific checked exception that we need to catch, or if the developer just wanted to catch whatever might get thrown. If I'm working on the class, I will change it RuntimeException, just to see if it generates a compiler error. (It usually doesn't, which means it's probably not even necessary)
+
+There are a few things wrong with this. First of all, catching Exception, or (worse) Throwable, is way too broad, and risks catching additional unchecked exceptions that you want to get logged by the uncheckedExceptionHandler. 
+    
+This is generally wrong and sloppy. Catch the specific exceptions that can be thrown. The problem with catchingException is that if the method you are calling later adds a new checked exception to its method signature, the developer's intent is that you should handle the specific new exception. If your code just catches Exception (or worse, Throwable), you'll probably never know about the change and the fact that your code is now wrong.
 
 ## Declaring "throws Exception" ##
 *Example:*
 
-    public void foo() throws Exception {
+    public void foo() throws Exception { ... }
 
-You can provide more information than that. Always 
-
-This is just sloppy, and it completely defeats the purpose of using a checked exception. It tells your callers "something can go wrong in my method." Real useful. Don't do this. Declare the specific checked exceptions that your method can throw. If there are several, you should probably wrap them in your own exception (see "Throwing the Kitchen Sink" below.)
+You can provide more information than that. Not only does this fail to specify what is getting thrown, it forces the caller to use an overly broad catch expression. That will catch RuntimeExceptions that should be allowed to pass through to your uncaughtExceptionHandler. 
 
 
 ##### (Borrowed. Rewrite and expand)
-
-Throwing Exception
-Example:
-
-public void foo() throws Exception {
-This is just sloppy, and it completely defeats the purpose of using a checked exception. It tells your callers "something can go wrong in my method." Real useful. Don't do this. Declare the specific checked exceptions that your method can throw. If there are several, you should probably wrap them in your own exception (see "Throwing the Kitchen Sink" below.)
 
 Throwing the Kitchen Sink
 Example:
@@ -194,17 +206,8 @@ Example:
 public void foo() throws MyException, AnotherException, SomeOtherException, YetAnotherException {
 Throwing multiple checked exceptions from your method is fine, as long as there are different possible courses of action that the caller may want to take, depending on which exception was thrown. If you have multiple checked exceptions that basically mean the same thing to the caller, wrap them in a single checked exception.
 
-Catching Exception
-Example:
 
-try { foo(); } catch (Exception e) { LOG.error("Foo failed", e); }
-This is generally wrong and sloppy. Catch the specific exceptions that can be thrown. The problem with catchingException is that if the method you are calling later adds a new checked exception to its method signature, the developer's intent is that you should handle the specific new exception. If your code just catches Exception (or worse, Throwable), you'll probably never know about the change and the fact that your code is now wrong.
 
-Destructive Wrapping
-Example:
-
-catch (NoSuchMethodException e) { throw new MyServiceException("Blah: " + e.getMessage()); }
-This destroys the stack trace of the original exception, and is always wrong.
 
 Log and Return Null
 Example:
@@ -257,11 +260,12 @@ The problem with relying on the result of getCauseis that it makes your code fra
 
 ###### Principles
 
-1. All uncaught exceptions will get logged.
-2. Exceptions are not bugs.
-3. There is no recovering from a bug.
-4. The proper behavior for invalid input is to throw an exception.
-5. Data should be validated when it comes into your application.
-6. Validate on object construction.
-7. Validate on object modification.
-8. Validation responsibility belongs with the data supplier.
+1.  All uncaught exceptions will get logged.
+2.  Exceptions are not bugs. They're the bread crumb trail that lead you to the bugs.
+3.  There is no recovering from a bug.
+4.  Catch only what you need to catch.
+5.  The proper behavior for invalid data is to throw an unchecked exception.
+6.  Validation responsibility belongs with the data supplier.
+6a. Validated data when you bring it into your application.
+6b. Validate on object construction.
+6c. Validate on object modification.
