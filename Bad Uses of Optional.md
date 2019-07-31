@@ -406,4 +406,3 @@ This whole class can be replaced by these two simple public static methods:
     public static boolean isUser(String ticket) {
         return StringUtils.startsWith(ticket, TICKET_PREFIX);
     }
-}
