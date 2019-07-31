@@ -288,12 +288,9 @@ Here's a private method to extract the first number from a String like this: `"n
 
 And here's an example of its usage:
 
-    while (modifierIterator.hasNext()) {
-        Modifier modifier = modifierIterator.next();
-        Optional<String> modifierSkuOptional = parseSku(modifier.getSku());
-        if (!modifierSkuOptional.isPresent() || !posSkuSet.contains(modifierSkuOptional.get())) {
-            modifierIterator.remove();
-        }
+    Optional<String> modifierSkuOptional = parseSku(modifier.getSku());
+    if (!modifierSkuOptional.isPresent() || !posSkuSet.contains(modifierSkuOptional.get())) {
+        doRemove(modifier);
     }
 
 What's striking about this code is that the use of Optional makes it much more verbose, without offering any benefit. This could have been written like this:
@@ -318,12 +315,9 @@ What's striking about this code is that the use of Optional makes it much more v
     }
     
     // example usage
-    while (modifierIterator.hasNext()) {
-        Modifier modifier = modifierIterator.next();
-        String modifierSku = parseSku(modifier.getSku());
-        if (modifierSku.isEmpty() || !posSkuSet.contains(modifierSku)) {
-            modifierIterator.remove();
-        }
+    String modifierSku = parseSku(modifier.getSku());
+    if (modifierSku.isEmpty() || !posSkuSet.contains(modifierSku)) {
+        doRemove(modifier);
     }
 
 There are no structural differences between these two code blocks. The first is very verbose, and offers nothing over the second one. The coder was trying so hard to avoid the dreaded `NullPointerException` that s/he put in a needless null check, as well as needlessly using Optional. In my rewritten version, the empty String plays the role of Optional.empty, which simplifies the code. Optional is presumably being used to avoid null pointer issues that don't even have to arise.
