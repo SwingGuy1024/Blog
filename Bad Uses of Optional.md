@@ -332,7 +332,9 @@ As I said in the opening, Optional was created for function chaining. In this ex
 
 
 ### Quick Takes:
-1. This one is silly, but harmless. The last line starts out with a redundant test.
+**1. This one is silly, but harmless.**
+
+The last line starts out with a redundant test.
 
        @Override
        public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
@@ -346,7 +348,7 @@ The null test duplicates the work of `ofNullable()`. It should be stripped out, 
 
 I was surprised to discover that my IDE does not have a code inspection to catch this.
 
-2. This code is fine, but it doesn't take advantage of what Optional has to offer.
+**2. This code is fine, but it doesn't take advantage of what Optional has to offer.**
 
        private void deleteLegacyUserIfExists(String email) {
            LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
@@ -362,3 +364,46 @@ It works, but you may change it to this:
             .getLegacyUser(email)
             .ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
     }
+
+**3. This one took way too much code to do something very simple.**
+
+While I try to discourage overuse of Optional, I encourage the use of `enum.` But this `enum` is pointless. It's two values were used nowhere else in the code; nor was its big public static method, `getTicketType().`
+
+    // This enum is an inner class of a larger class, which defines the two String Constants 
+    // used here. Their value isn't important. 
+    public enum TicketType {
+        LOCAL_ADMIN,
+        USER;
+
+        // This should have been private, as it's only called by the other two public static methods:
+        public static Optional<TicketType> getTicketType(String ticket) {
+            Optional<TicketType> ticketTypeOptional = Optional.empty();
+            if (StringUtils.startsWith(ticket, ADMIN_PREFIX)) {
+                ticketTypeOptional = Optional.of(LOCAL_ADMIN);
+            } else if (StringUtils.startsWith(ticket, TICKET_PREFIX)) {
+                ticketTypeOptional = Optional.of(USER);
+            }
+            return ticketTypeOptional;
+        }
+    
+        public static boolean isLocalAdmin(String ticket) {
+            Optional<TicketType> ticketTypeOptional = getTicketType(ticket);
+            return ticketTypeOptional.isPresent() && ticketTypeOptional.get() == LOCAL_ADMIN;
+        }
+    
+        public static boolean isUser(String ticket) {
+            Optional<TicketType> ticketTypeOptional = getTicketType(ticket);
+            return ticketTypeOptional.isPresent() && ticketTypeOptional.get() == USER;
+        }
+    }
+
+This whole class can be replaced by these two simple public static methods:
+
+    public static boolean isLocalAdmin(String ticket) {
+        return StringUtils.startsWith(ticket, ADMIN_PREFIX);
+    }
+    
+    public static boolean isUser(String ticket) {
+        return StringUtils.startsWith(ticket, TICKET_PREFIX);
+    }
+}
