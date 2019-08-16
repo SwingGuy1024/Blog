@@ -336,7 +336,7 @@ The last line starts out with a redundant test.
            return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
        }
 
-The null test duplicates the work of `ofNullable()`. It should be stripped out, to get this:
+In the return statement, the null test duplicates the work of `ofNullable()`. It should be stripped out, to get this:
 
     return Optional.ofNullable(key.parse(propertyAsString));
 
@@ -359,7 +359,20 @@ It works, but you may change it to this:
             .ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
     }
 
-**3. This one took way too much code to do something very simple.**
+**3. This one declares an Optional return, but may still return null.**
+
+    public static Optional<POSType> getPOSType(String posName) {
+        if (StringUtils.isNotBlank(posName)) {
+            return Arrays.stream(POSType.values())
+                    .filter(type -> type.toString().equalsIgnoreCase(posName))
+                    .findFirst();
+        }
+        return null;
+    }
+    
+If the `findfirst()` method doesn't find anything, it correctly returns an empty `Optional.` But if the input parameter is missing, there's nothing to find, so it should return `Optional.empty().` But it returns `null` instead! Returning an empty Optional here would make much more sense.
+
+**4. This one took way too much code to do something very simple.**
 
 While I try to discourage overuse of Optional, I encourage the use of `enum.` But this `enum` is pointless. It's two values were used nowhere else in the code; nor was its big public static method, `getTicketType().`
 
