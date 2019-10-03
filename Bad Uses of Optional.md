@@ -404,7 +404,7 @@ While I try to discourage overuse of Optional, I encourage the use of `enum.` Bu
         }
     }
 
-This whole class can be replaced by these two simple public static methods:
+All this code can be replaced by these two simple public static methods:
 
     public static boolean isLocalAdmin(String ticket) {
         return StringUtils.startsWith(ticket, ADMIN_PREFIX);
