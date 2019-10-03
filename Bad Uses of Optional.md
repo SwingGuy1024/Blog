@@ -196,7 +196,7 @@ How can we rewrite this class? It's often wise to initialize variables, but you 
     private Optional<Integer> lockoutDuration = Optional.empty();
 
     public void setLockoutDuration(Optional<Integer> lockoutDuration) {
-        this.lockoutDuration = (lockoutDuration == null)? Optional.empty() : lockoutDuration;
+        this.lockoutDuration = (lockoutDuration == null)? Optional.empty() : lockoutDuration; // clumsy! 
     }
 
     public Optional<Integer> getLockoutDuration() {
@@ -212,7 +212,7 @@ Or you could do all this extra work in the getter.
     }
 
     public Optional<Integer> getLockoutDuration() {
-        return (lockoutDuration == null)? Optional.empty() : lockoutDuration;   // Can't return null.
+        return (lockoutDuration == null)? Optional.empty() : lockoutDuration;   // Clumsy, but can't return null.
     }
 
 Each of these is an improvement. They are far more robust. The `NullPointerException` goes away completely. The getter will never return null, so the missing null-check becomes unnecessary. But you're testing both the lockout duration and the Optional for null. And it's still more work to call the setter, because you need to wrap the result in an Optional:
@@ -224,7 +224,7 @@ It makes more sense to leave the Optional out of the setter parameter. This also
     private Optional<Integer> lockoutDuration = Optional.empty();
 
     public void setLockoutDuration(Integer lockoutDurationOrNull) {
-        this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull); // can't set it to null.
+        this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull); // Better! Can't set it to null.
     }
 
     public Optional<Integer> getLockoutDuration() {
