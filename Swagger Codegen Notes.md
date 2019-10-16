@@ -51,4 +51,4 @@ This added the following annotations to the model objects and its fields:
 	  @JacksonXmlProperty(localName = "username")
 	  private String username = null;
 	  ...
-I have no idea what these annotations do.
+I have no idea what most of these annotations do.
