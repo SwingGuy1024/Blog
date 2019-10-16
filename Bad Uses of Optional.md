@@ -187,142 +187,36 @@ Here's the class:
         }
     }
 
-Of course it's null. They never initialize the Optional value. When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.) Ironically, the Optional wrapper is never optional.
+Of course it's null! They never initialize the Optional value. When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.) Ironically, the Optional wrapper is never optional.
 
 (By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write. But they often get overlooked.)
 
-How can we rewrite this class? It's often wise to initialize variables, but you should also take care that the setter doesn't set them to null.
+If your member object is Optional, it needs to be initialized:
 
     private Optional<Integer> lockoutDuration = Optional.empty();
+
+But what does your setter look like? It's still possible to set the value to null:
 
     public void setLockoutDuration(Optional<Integer> lockoutDuration) {
         this.lockoutDuration = (lockoutDuration == null)? Optional.empty() : lockoutDuration; // clumsy! 
     }
 
-    public Optional<Integer> getLockoutDuration() {
-        return lockoutDuration;                      // Can't possibly be null.
-    }
-
-Or you could do all this extra work in the getter. 
-
-    private Optional<Integer> lockoutDuration;
-
-    public void setLockoutDuration(Optional<Integer> lockoutDuration) {
-        this.lockoutDuration = lockoutDuration;
-    }
-
-    public Optional<Integer> getLockoutDuration() {
-        return (lockoutDuration == null)? Optional.empty() : lockoutDuration;   // Clumsy, but can't return null.
-    }
-
-Each of these is an improvement. They are far more robust. The `NullPointerException` goes away completely. The getter will never return null, so the missing null-check becomes unnecessary. But you're testing both the lockout duration and the Optional for null. And it's still more work to call the setter, because you need to wrap the result in an Optional:
-
-    authenticationResult.setLockoutDuration(Optional.of(5));
-
-It makes more sense to leave the Optional out of the setter parameter. This also means you can remove the null test from the getter:
-
-    private Optional<Integer> lockoutDuration = Optional.empty();
-
-    public void setLockoutDuration(Integer lockoutDurationOrNull) {
-        this.lockoutDuration = Optional.ofNullable(lockoutDurationOrNull); // Better! Can't set it to null.
-    }
-
-    public Optional<Integer> getLockoutDuration() {
-        return lockoutDuration;   // Can't return null.
-    }
-
-Removing Optional makes the method both simpler and easier to call. The extra null test is no longer necessary. Also, the fact that your value is wrapped inside an Optional is now an implementation detail that's hidden from the user.
-
-If you're still not convinced that the parameter shouldn't have an Optional, consider this. This method could be called five times or fifty times. So which makes more sense, wrapping the the value in an Optional each time, which means maybe fifty times? Or doing that once in the setter? And if it gets done fifty times, how many of those will mistakenly call Optional.of() instead of Optional.ofNullable()?
-    
-In this particular case, you can even take advantage of the fact that the Integer wraps a primitive value:
-
-    public void setLockoutDuration(int lockoutDuration) {
-        this.lockoutDuration = Optional.of(lockoutDuration);
-    }
-
-(This won't help for most types.)
-
-The cleanest way to avoid this bug is by avoiding the use of Optional class member at all:
+This is clumsy because you now need to worry about two null values, the Object that may be null and the Optional that holds it. Two simple changes make the class simpler and more robust. First, don't store an Optional. Second, don't take one as a parameter.
 
     public class AuthenticationResult {
         // ...
-        private Integer lockoutDuration;                        // No longer wrapped in Optional
+        private Integer lockoutDuration;                 // No longer wrapped in Optional. Might be null
 
         public void setLockoutDuration(Integer lockoutDurationOrNull) {
-            lockoutDuration = lockoutDurationOrNull;            // No need for null checking
+            lockoutDuration = lockoutDurationOrNull;     // No need for null checking
         }
         
         public Optional<Integer> getLockoutDurationOpt() {
-            return Optional.ofNullable(lockoutDuration);        // The only place where we use Optional
+            return Optional.ofNullable(lockoutDuration); // The only place where we use Optional
         }
     }
 
 Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
-
-That said, there is actually one advantage to holding an Optional value as a member. Optional is an immutable class, so the instance may be safely shared between multiple threads. If the getter will be called often, it's marginally faster to create it once and keep reusing the same object. But there's no reason to use it as a method parameter.
-
-### Example 7: No benefit
-
-Here's a private method to extract the first number from a String like this: `"nnn:nnn:nnn..."
-
-    // "" -> (empty)
-    // "   " -> (empty)
-    // "1234" -> ("1234")
-    // "a:123" -> (empty)
-    // "1:2" -> ("1")
-    private Optional<String> parseSku(String menuSku) {
-        if (StringUtils.isBlank(menuSku)) {
-            return Optional.empty();
-        }
-        if (!StringUtils.contains(menuSku, ":")) {
-            return Optional.of(menuSku);
-        }
-        String[] splitSkuArray = menuSku.split(":");
-        // Note that this test for null us not necessary, an issue that's unrelated to Optional
-        if (splitSkuArray == null || !NumberUtils.isCreatable(splitSkuArray[0])) {
-            return Optional.empty();
-        }
-        return Optional.of(splitSkuArray[0]);
-    }
-
-And here's an example of its usage:
-
-    Optional<String> modifierSkuOptional = parseSku(modifier.getSku());
-    if (!modifierSkuOptional.isPresent() || !posSkuSet.contains(modifierSkuOptional.get())) {
-        doRemove(modifier);
-    }
-
-What's striking about this code is that the use of Optional makes it much more verbose, without offering any benefit. This could have been written like this:
-
-    // "" -> (empty)
-    // "   " -> (empty)
-    // "1234" -> ("1234")
-    // "a:123" -> (empty)
-    // "1:2" -> ("1")
-    private String parseSku(String menuSku) {
-        if (StringUtils.isBlank(menuSku)) {
-            return "";
-        }
-        if (!StringUtils.contains(menuSku, ":")) {
-            return menuSku;
-        }
-        String[] splitSkuArray = menuSku.split(":");
-        if (!NumberUtils.isCreatable(splitSkuArray[0])) {
-            return "";
-        }
-        return splitSkuArray[0];
-    }
-    
-    // example usage
-    String modifierSku = parseSku(modifier.getSku());
-    if (modifierSku.isEmpty() || !posSkuSet.contains(modifierSku)) {
-        doRemove(modifier);
-    }
-
-There are no structural differences between these two code blocks. The first is very verbose, and offers nothing over the second one. The coder was trying so hard to avoid the dreaded `NullPointerException` that s/he put in a needless null check, as well as needlessly using Optional. In my rewritten version, the empty String plays the role of Optional.empty, which simplifies the code. Optional is presumably being used to avoid null pointer issues that don't even have to arise.
-
-As I said in the opening, Optional was created for function chaining. In this example, there is no chaining done, so Optional offers no advantage.
 
 
 ### Quick Takes:
@@ -370,7 +264,7 @@ It works, but you may change it to this:
         return null;
     }
     
-If the `findfirst()` method doesn't find anything, it correctly returns an empty `Optional.` But if the input parameter is missing, there's nothing to find, so it should return `Optional.empty().` But it returns `null` instead! Returning an empty Optional here would make much more sense.
+If the `findFirst()` method doesn't find anything, it correctly returns an empty `Optional.` But if the input parameter is missing, there's nothing to find, so it should return `Optional.empty().` But it returns `null` instead! I had to fix the ensuing `NullPointerException` that Optional, once again, had failed to prevent.
 
 **4. This one took way too much code to do something very simple.**
 
