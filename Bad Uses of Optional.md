@@ -165,25 +165,25 @@ This one also throws a NullPointerException if the parameter is null. But it tak
 
 ### Example 6: Self Defeating
 
-This one, I don't even know how it made it into production. In this example, a NullPointerException is thrown on the second line. There are four places in the line where a null will cause an Exception. Can you figure out where it comes? (The getLockoutDuration() method returns Optional<Integer>.) 
+This one, I don't even know how it made it into production. In this example, a NullPointerException is thrown on the second line. There are four places in the line where a null will cause an Exception. Can you figure out where it comes? (The getFooOpt() method returns Optional<Foo>.) 
 
-    thing.setSomeProperty(result, authenticationResult.getSomeProperty());
-    thing.setResultDuration(result, authenticationResult.getLockoutDuration().get()); // NullPointerException
+    thing.setSomeProperty(result, widget.getSomeProperty());
+    thing.setFooForResult(result, widget.getFooOpt().get()); // NullPointerException
 
-If you can't narrow it down, notice that `thing` and `authenticationResult` can't be null, or the exception would have been thrown on the previous line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Integer>` returned by `getLockoutDuration()` is itself null.
+If you can't narrow it down, notice that `thing` and `widget` can't be null, or the exception would have been thrown on the previous line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Foo>` returned by `getFoo()` is itself null.
 
 Here's the class:
 
-    public class AuthenticationResult {
+    public class Widget {
         // ...
-        private Optional<Integer> lockoutDuration;
+        private Optional<Foo> foo;
 
-        public Optional<Integer> getLockoutDuration() {
-            return lockoutDuration;
+        public Optional<Foo> getFooOpt() {
+            return foo;
         }
 
-        public void setLockoutDuration(Optional<Integer> lockoutDuration) {
-            this.lockoutDuration = lockoutDuration;
+        public void setFoo(Optional<Foo> foo) {
+            this.foo = foo;
         }
     }
 
@@ -193,26 +193,26 @@ Of course it's null! They never initialize the Optional value. When the class me
 
 If your member object is Optional, it needs to be initialized:
 
-    private Optional<Integer> lockoutDuration = Optional.empty();
+    private Optional<Foo> foo = Optional.empty();
 
-But what does your setter look like? It's still possible to set the value to null:
+But what does your setter look like? It's still possible to set the value to null, so do you guard against that?
 
-    public void setLockoutDuration(Optional<Integer> lockoutDuration) {
-        this.lockoutDuration = (lockoutDuration == null)? Optional.empty() : lockoutDuration; // clumsy! 
+    public void setFoo(Optional<Foo> foo) {
+        this.foo = (foo == null)? Optional.empty() : foo; // clumsy! 
     }
 
-This is clumsy because you now need to worry about two null values, the Object that may be null and the Optional that holds it. Two simple changes make the class simpler and more robust. First, don't store an Optional. Second, don't take one as a parameter.
+Now you're worrying about two null values, the Foo that may be null and the Optional that holds it. Setters used to be very simple to write. But two simple changes return us to simplicty, and buy us robustness. First, don't store an Optional. Second, don't take one as a parameter.
 
-    public class AuthenticationResult {
+    public class Widget {
         // ...
-        private Integer lockoutDuration;                 // No longer wrapped in Optional. Might be null
+        private Foo foo;                     // No longer wrapped in Optional, might be null
 
-        public void setLockoutDuration(Integer lockoutDurationOrNull) {
-            lockoutDuration = lockoutDurationOrNull;     // No need for null checking
+        public void setFoo(Foo fooOrNull) {
+            foo = fooOrNull;                 // No need for null checking
         }
         
-        public Optional<Integer> getLockoutDurationOpt() {
-            return Optional.ofNullable(lockoutDuration); // The only place where we use Optional
+        public Optional<Foo> getFooOpt() {
+            return Optional.ofNullable(foo); // The only place where we use Optional
         }
     }
 
