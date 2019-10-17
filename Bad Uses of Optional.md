@@ -189,8 +189,6 @@ Here's the class:
 
 Of course it's null! They never initialize the Optional value. When the class member is an Optional instance, it's just as likely to be null as any other object. So if the developer was using Optional to avoid a `NullPointerException`, it didn't work. (Of course, Optional wasn't written to solve this problem, and as this example illustrates, it doesn't.) Ironically, the Optional wrapper is never optional.
 
-(By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write. But they often get overlooked.)
-
 If your member object is Optional, it needs to be initialized:
 
     private Optional<Foo> foo = Optional.empty();
@@ -218,6 +216,7 @@ Now you're worrying about two null values, the Foo that may be null and the Opti
 
 Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
 
+(By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write. But they often get overlooked.)
 
 ### Quick Takes:
 **1. This one is silly, but harmless.**
