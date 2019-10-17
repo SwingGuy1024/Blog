@@ -219,23 +219,7 @@ Here, the code and the method signatures are as simple as they can get. We never
 (By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these are easy tests to write. But they often get overlooked.)
 
 ### Quick Takes:
-**1. This one is silly, but harmless.**
-
-The last line starts out with a redundant test.
-
-       @Override
-       public <T> Optional<T> get(String tenant, TenantProperty<T> key) {
-           String propertyAsString = getPropertyAsString(tenant, key.name());
-           return propertyAsString == null ? Optional.empty() : Optional.ofNullable(key.parse(propertyAsString));
-       }
-
-In the return statement, the null test duplicates the work of `ofNullable()`. It should be stripped out, to get this:
-
-    return Optional.ofNullable(key.parse(propertyAsString));
-
-I was surprised to discover that my IDE does not have a code inspection to catch this.
-
-**2. This code is fine, but it doesn't take advantage of what Optional has to offer.**
+**1. This code is fine, but it doesn't take advantage of what Optional has to offer.**
 
        private void deleteLegacyUserIfExists(String email) {
            LegacyUser legacyUser = legacyUserService.getLegacyUser(email).orElse(null);
@@ -252,7 +236,7 @@ It works, but you may change it to this:
             .ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
     }
 
-**3. This one declares an Optional return, but may still return null.**
+**2. This one declares an Optional return, but may still return null.**
 
     public static Optional<POSType> getPOSType(String posName) {
         if (StringUtils.isNotBlank(posName)) {
@@ -265,7 +249,7 @@ It works, but you may change it to this:
     
 If the `findFirst()` method doesn't find anything, it correctly returns an empty `Optional.` But if the input parameter is missing, there's nothing to find, so it should return `Optional.empty().` But it returns `null` instead! I had to fix the ensuing `NullPointerException` that Optional, once again, had failed to prevent.
 
-**4. This one took way too much code to do something very simple.**
+**3. This one took way too much code to do something very simple.**
 
 While I try to discourage overuse of Optional, I encourage the use of `enum.` But this `enum` is pointless. It's two values were used nowhere else in the code; nor was its big public static method, `getTicketType().`
 
@@ -306,3 +290,5 @@ All this code can be replaced by these two simple public static methods:
     public static boolean isUser(String ticket) {
         return StringUtils.startsWith(ticket, TICKET_PREFIX);
     }
+
+The Optional class isn't the culprit here. This would have been written badly before Optional was created. But the use of Optional only makes it worse.
