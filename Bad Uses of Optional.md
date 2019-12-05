@@ -251,7 +251,7 @@ If the `findFirst()` method doesn't find anything, it correctly returns an empty
 
 **3. This one took way too much code to do something very simple.**
 
-While I try to discourage overuse of Optional, I encourage the use of `enum,` but this `enum` is pointless. Its two values were used nowhere else in the code; nor was its big public static method, `getTicketType().` The purpose of the code is to determine what kind of user (regular vs. admin) has logged in, by looking at the prefix of the login ticket, which is a String. I would have written the code like this:
+Here's a simple requirement: Determine if a user is regular or admin, based on the prefix of the user ticket, which is a String. I would have written the code like this:
 
     public static boolean isLocalAdmin(String ticket) {
         return StringUtils.startsWith(ticket, ADMIN_PREFIX); // ADMIN_PREFIX is a String constant.
@@ -261,7 +261,7 @@ While I try to discourage overuse of Optional, I encourage the use of `enum,` bu
         return StringUtils.startsWith(ticket, TICKET_PREFIX); // TICKET_PREFIX is a String constant.
     }
 
-But, in an apparent effort to make things as complicated as possible, this is what they wrote. This code would have been clumsy and verbose even without Optional, but its use only makes it worse. All of this code does nothing more than my two simple methods above.
+But somebody got the idea that this task was a bit bigger. While I try to discourage overuse of Optional, I encourage the use of `enum,` but the `enum` in the code below is pointless. Its two values were used nowhere else in the project; nor was its big public static method, `getTicketType().` This code would have been clumsy and verbose even without Optional, but its use only makes it worse. All of this code does nothing more than my two simple methods above.
 
     // This enum is an inner class of a larger class, which defines the two String Constants 
     // used here. Their values aren't important. 
@@ -290,8 +290,6 @@ But, in an apparent effort to make things as complicated as possible, this is wh
             return ticketTypeOptional.isPresent() && ticketTypeOptional.get() == USER;
         }
     }
-
-The Optional class isn't the culprit here. This would have been written badly before Optional was created. But the use of Optional only makes it worse.
 
 **4. More Verbosity**
 
