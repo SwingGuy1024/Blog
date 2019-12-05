@@ -135,7 +135,7 @@ But before Optional was invented, there was already a widely-used way to specify
     private void someMethod() { someMethod(getDefaultWidget()); }
     private void someMethod(Widget widget) { ... }
 
-Even if you insist in using a single method, there's a simpler way to let the user know that `widget` may be null, that doesn't add verbosity to the calling method:
+Even if you insist on using a single method, there's a simpler way to let the user know that `widget` may be null, that doesn't add verbosity to the calling method:
 
     1 private void someMethod(final Widget widgetOrNull) {
     2   final Widget widget = (widgetOrNull == null) ? getDefaultWidget() : widgetOrNull;
@@ -251,15 +251,25 @@ If the `findFirst()` method doesn't find anything, it correctly returns an empty
 
 **3. This one took way too much code to do something very simple.**
 
-While I try to discourage overuse of Optional, I encourage the use of `enum.` But this `enum` is pointless. It's two values were used nowhere else in the code; nor was its big public static method, `getTicketType().`
+While I try to discourage overuse of Optional, I encourage the use of `enum,` but this `enum` is pointless. Its two values were used nowhere else in the code; nor was its big public static method, `getTicketType().` The purpose of the code is to determine what kind of user (regular vs. admin) has logged in, by looking at the prefix of the login ticket, which is a String. I would have written the code like this:
+
+    public static boolean isLocalAdmin(String ticket) {
+        return StringUtils.startsWith(ticket, ADMIN_PREFIX); // ADMIN_PREFIX is a String constant.
+    }
+    
+    public static boolean isUser(String ticket) {
+        return StringUtils.startsWith(ticket, TICKET_PREFIX); // TICKET_PREFIX is a String constant.
+    }
+
+But, in an apparent effort to make things as complicated as possible, this is what they wrote. This code would have been clumsy and verbose even without Optional, but its use only makes it worse. All of this code does nothing more than my two simple methods above.
 
     // This enum is an inner class of a larger class, which defines the two String Constants 
-    // used here. Their value isn't important. 
-    public enum TicketType {
+    // used here. Their values aren't important. 
+    public enum TicketType { // This public enum could have been private. It's not used anywhere else.
         LOCAL_ADMIN,
         USER;
 
-        // This should have been private, as it's only called by the other two public static methods:
+        // This could have been private, as it's only called by the two public static methods below:
         public static Optional<TicketType> getTicketType(String ticket) {
             Optional<TicketType> ticketTypeOptional = Optional.empty();
             if (StringUtils.startsWith(ticket, ADMIN_PREFIX)) {
@@ -281,14 +291,29 @@ While I try to discourage overuse of Optional, I encourage the use of `enum.` Bu
         }
     }
 
-All this code can be replaced by these two simple public static methods:
-
-    public static boolean isLocalAdmin(String ticket) {
-        return StringUtils.startsWith(ticket, ADMIN_PREFIX);
-    }
-    
-    public static boolean isUser(String ticket) {
-        return StringUtils.startsWith(ticket, TICKET_PREFIX);
-    }
-
 The Optional class isn't the culprit here. This would have been written badly before Optional was created. But the use of Optional only makes it worse.
+
+**4. More Verbosity**
+
+Once again, this code declares an Optional variable that's just a more verbose way to check for null. It's declared 
+as `Optional<TicketModel> ticketModelOptional` this time. Fortunately it's initialized correctly and doesn't introduce a bug, so it runs fine.
+
+    private boolean userServiceLogin(String tenant, String userName, AuthenticationResult result) {
+        Response response = ticketService.authenticateUser(userName, tenant);
+
+        Optional<TicketModel> ticketModelOptional = Optional.empty();
+        if (response != null && (response.getStatus() == Response.Status.OK)) {
+            LOGGER.debug("successfully login userName {} ", userName);
+            ticketModelOptional = Optional.of(response.readEntity(TicketModel.class));
+        } else {
+            LOGGER.error("error returned while login userName {} ", userName);
+        }
+        if (ticketModelOptional.isPresent()) {
+            LOGGER.info("successful authentication. ticket id:{}", ticketModelOptional.get().getId());
+            result.setStatus(AuthenticationResult.AuthStatus.SUCCESS);
+            result.setTicket(Optional.ofNullable(buildAuthenticationTicket(ticketModelOptional.get())));
+            return true;
+        }
+        return false;
+    }
+
