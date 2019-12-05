@@ -170,7 +170,7 @@ This one, I don't even know how it made it into production. In this example, a N
     thing.setSomeProperty(result, widget.getSomeProperty());
     thing.setFooForResult(result, widget.getFooOpt().get()); // NullPointerException
 
-If you can't narrow it down, notice that `thing` and `widget` can't be null, or the exception would have been thrown on the previous line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Foo>` returned by `getFoo()` is itself null.
+If you can't narrow it down, notice that `thing` and `widget` can't be null, or the exception would have been thrown on the previous line. My IDE issues a warning for the call to `get()`, saying *'Optional.get()' without 'isPresent()' check*. But that's not the problem, because an empty `Optional.get()` will throw a `NoSuchElementException`, rather than a `NullPointerException`. So it's clear that the problem is that the `Optional<Foo>` returned by `getFooOpt()` is itself null.
 
 Here's the class:
 
