@@ -3,7 +3,7 @@
 Many people, including me, were excited that an Optional class was introduced in Java 8. As soon as I saw it, I was disappointed by how verbose it was, and puzzled by the strange and long-winded approach. At the time, I misunderstood its purpose, as did a lot of other people. Many people began to use it extensively. It's now very widespread, and it has led to some amazingly bad code, written by people who don't understand what it's for. In certain limited situations it's actually very useful, although I rarely actually use myself. I'm planning to expand this to a more comprehensive take on Java's Optional class, but for now, I offer some examples of very bad usages of the Optional class. (Some of this is taken from a [StackOverflow question](https://stackoverflow.com/questions/26327957/should-java-8-getters-return-optional-type) that I answered. This expands on my answer.)
 
 ## Optional's Purpose
-Optional was introduced at the same time as functional programming. It's helpful because the return expression in example B is cleaner than the three lines of code in example A:
+A [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html) does a good job of illustrating why Optional was invented. It was introduced at the same time as functional programming, and it's helpful because the return expression in example B is cleaner than the three lines of code in example A:
 
 
 ***Example A: Clumsy functional code***
@@ -30,7 +30,7 @@ Optional was introduced at the same time as functional programming. It's helpful
       .findFirst()                        // findFirst() returns Optional<Method>.
       .getOrThrow(() -> new InternalError("Enclosing method not found"));
 
-(This example comes courtesy of a [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2012-September/005952.html)) My point is that Optional is needed to support function chaining. It allows a chain of calls to proceed even if a method returns null. This is used widely in functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `getFirst()` method from example A, which may return null, gets replaced by the `findFirst()` method, which wraps the null value inside an Optional. The Optional, in turn, lets us continue the chain of methods.
+Brian Goetz shows how Optional is needed to support function chaining. It allows a chain of calls to continue even if a method returns null. This is used widely in functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `findFirst()` call, which returns `Optional<T>` replaced the `getFirst()` method from example A, which may return null. The Optional in turn lets us continue the chain of methods.
 
 Another place where it gets used is in the very useful `Optional.flatMap()` method, but not in the `Optional.map()` method. Here are their signatures:
 
