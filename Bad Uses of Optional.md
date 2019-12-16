@@ -200,7 +200,9 @@ But what does your setter look like? It's still possible to set the value to nul
         this.foo = (foo == null)? Optional.empty() : foo; // clumsy! 
     }
 
-Now you're worrying about two null values, the Foo that may be null and the Optional that holds it. Setters used to be very simple to write. But two simple changes return us to simplicty, and buy us robustness. First, don't store an Optional. Second, don't take one as a parameter.
+Now you're worrying about two null values, the Foo that may be null and the Optional that holds it. Setters should be very simple to write. 
+
+But two simple changes return us to simplicty, and buy us robustness. First, don't store an Optional. Second, don't take one as a parameter.
 
     public class Widget {
         // ...
@@ -215,7 +217,7 @@ Now you're worrying about two null values, the Foo that may be null and the Opti
         }
     }
 
-Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, but it's used in a way that guarantees it can't be null. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
+Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, and it's used in a way that guarantees it can't be null. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
 
 The final irony in this example is this: In order to implement this in a way that guarantees it won't produce a NullPointerException, we actually had to remove Optional from the setter. The use of Optional here actually created a whole new way of generating NullPointerExceptions.
 
