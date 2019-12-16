@@ -266,7 +266,7 @@ Here's a simple requirement: Determine if a user is regular or admin, based on t
         return StringUtils.startsWith(ticket, TICKET_PREFIX); // TICKET_PREFIX is a String constant.
     }
 
-But somebody got the idea that this task was a bit bigger. While I try to discourage overuse of Optional, I encourage the use of `enum,` but the `enum` in the code below is pointless. Its two values were used nowhere else in the project; nor was its big public static method, `getTicketType().` This code would have been clumsy and verbose even without Optional, but its use only makes it worse. All of this code does nothing more than my two simple methods above.
+But somebody got the idea that this task was a bit bigger. While I try to discourage overuse of Optional, I encourage the use of `enum,` but the `enum` in the code below is pointless. Its two values were used nowhere else in the project; nor was its big public static method, `getTicketType().` Even without Optional, this code would have been clumsy and verbose, but Optional only makes it worse. None of this extra code does anything more than my two simple methods above.
 
     // This enum is an inner class of a larger class, which defines the two String Constants 
     // used here. Their values aren't important. 
@@ -295,28 +295,3 @@ But somebody got the idea that this task was a bit bigger. While I try to discou
             return ticketTypeOptional.isPresent() && ticketTypeOptional.get() == USER;
         }
     }
-
-**4. More Verbosity**
-
-Once again, this code declares an Optional variable that's just a more verbose way to check for null. It's declared 
-as `Optional<TicketModel> ticketModelOptional` this time. Fortunately it's initialized correctly and doesn't introduce a bug, so it runs fine.
-
-    private boolean userServiceLogin(String tenant, String userName, AuthenticationResult result) {
-        Response response = ticketService.authenticateUser(userName, tenant);
-
-        Optional<TicketModel> ticketModelOptional = Optional.empty();
-        if (response != null && (response.getStatus() == Response.Status.OK)) {
-            LOGGER.debug("successfully login userName {} ", userName);
-            ticketModelOptional = Optional.of(response.readEntity(TicketModel.class));
-        } else {
-            LOGGER.error("error returned while login userName {} ", userName);
-        }
-        if (ticketModelOptional.isPresent()) {
-            LOGGER.info("successful authentication. ticket id:{}", ticketModelOptional.get().getId());
-            result.setStatus(AuthenticationResult.AuthStatus.SUCCESS);
-            result.setTicket(Optional.ofNullable(buildAuthenticationTicket(ticketModelOptional.get())));
-            return true;
-        }
-        return false;
-    }
-
