@@ -164,7 +164,16 @@ Yeah. I've seen this. Once again, Optional means Required. And lines 2-4 are poi
     
 This one also throws a NullPointerException if the parameter is null. But it takes one line to do what five lines did in the first case. It also gave us an opportunity to clarify the required nature of the parameter with a better name. Although "required" should be implicit.
 
-### Example 6: Self Defeating
+### Example 6: Also Pointless
+
+    public WidgetRequest getWidgetRequestByToken(String token) {
+        return widgetReqTblDao.findByNamedParam("token", token).orElse(null);
+    }
+
+The `findByNamedParam()` method, which returns an Optional, is only used in two places, both in the same class, and is used the same way in each case. It returns an Optional, which this method converts to a null if it's empty. Of course, it would have been simpler to just return null instead of Optional. Farther up the call stack, the object is checked for null. It would also have made sense to send the Optional all the way back. But as written, the use of Optional here is harmless but pointless.
+
+
+### Example 7: Self Defeating
 
 This one, I don't even know how it made it into production. In this example, a NullPointerException is thrown on the second line. There are four places in the line where a null will cause an Exception. Can you figure out where it comes? (The getFooOpt() method returns `Optional<Foo>`.) 
 
@@ -176,7 +185,7 @@ If you can't narrow it down, notice that `thing` and `widget` can't be null, or 
 Here's the class:
 
     public class Widget {
-        // ...
+        // ... (other properties, etc)
         private Optional<Foo> foo;
 
         public Optional<Foo> getFooOpt() {
