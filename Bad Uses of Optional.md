@@ -304,5 +304,3 @@ But somebody got the idea that this task was a bit bigger. While I try to discou
             return ticketTypeOptional.isPresent() && ticketTypeOptional.get() == USER;
         }
     }
-    
-What I find especially amusing about this code is that the coder takes special care to ensure that the optional value returned by `getTicketType()` is never empty, but then still calls the isPresent() method before extracting the value. So again, a never-null value is wrapped in an Optional and carefully tested for null.
