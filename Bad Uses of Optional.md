@@ -169,8 +169,9 @@ This one also throws a NullPointerException if the parameter is null. But it tak
     public WidgetRequest getWidgetRequestByToken(String token) {
         return widgetReqTblDao.findByNamedParam("token", token).orElse(null);
     }
+    
 
-The `findByNamedParam()` method, which returns an Optional, is only used in two places, both in the same class, and is used the same way in each case. It returns an Optional, which this method converts to a null if it's empty. Of course, it would have been simpler to just return null instead of Optional. Farther up the call stack, the object is checked for null. It would also have made sense to send the Optional all the way back. But as written, the use of Optional here is harmless but pointless.
+In the class where I found this code, the `findByNamedParam()` method, which returns an Optional, is only used in two places, both in the same class, and is used the same way in each case. It returns an Optional, which this method converts to a null if it's empty. Of course, it would have been simpler to just return null instead of Optional. Farther up the call stack, the object is checked for null. It would also have made sense to send the Optional all the way back. But as written, the use of Optional here is harmless but pointless.
 
 
 ### Example 7: Self Defeating
