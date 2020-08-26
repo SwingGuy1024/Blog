@@ -219,7 +219,7 @@ But two simple changes return us to simplicty, and buy us robustness. First, don
         private Foo foo;                     // No longer wrapped in Optional, might be null
 
         public void setFoo(Foo fooOrNull) {
-            foo = fooOrNull;                 // No need for null checking
+            foo = fooOrNull;                 // No need to check for null, null value is ok
         }
         
         public Optional<Foo> getFooOpt() {
