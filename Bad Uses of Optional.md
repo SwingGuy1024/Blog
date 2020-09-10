@@ -233,6 +233,25 @@ The final irony in this example is this: In order to implement this in a way tha
 
 (By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these tests are easy to write. But they often get overlooked.)
 
+If you  insist on keeping an Optional member in the class, there's still a reliable way to do this. Your class can't implement serializable, but it will work. You still need to keep Optional out of your parameters.
+
+
+    public class Widget {
+        // ...
+        private Optional<Foo> foo = Optional.empty();
+
+        public void setFoo(Foo fooOrNull) {
+            foo = Optional.ofNullable(fooOrNull);
+        }
+        
+        public Optional<Foo> getFooOpt() {
+            return foo;
+        }
+    }
+    
+What these two implementations have in common is that they take total control over where and how Optional is called. The user can't make the mistake of calling `Optional.of()` instead of `Optional.ofNullable()`.
+
+Some people will object, saying Optional can be used to force the user to think about whether the parameter is null or not. But why force the user? This way, the user doesn't have to worry about it. Either way, it works.
 ### Quick Takes:
 **1. This code is fine, but it doesn't take advantage of what Optional has to offer.**
 
