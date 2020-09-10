@@ -249,7 +249,7 @@ If you  insist on keeping an Optional member in the class, there's still a relia
         }
     }
     
-What these two implementations have in common is that they take total control over where and how Optional is called. The user can't make the mistake of calling `Optional.of()` instead of `Optional.ofNullable()`.
+What these two implementations have in common is that they take total control over where and how Optional is instantiated. The user can't make the mistake of calling `Optional.of()` instead of `Optional.ofNullable()`.
 
 Some people will object, saying Optional can be used to force the user to think about whether the parameter is null or not. But why force the user? This way, the user doesn't have to worry about it. Either way, it works.
 ### Quick Takes:
