@@ -272,7 +272,7 @@ It works, but you may change it to this:
     private void deleteLegacyUserIfExists(String email) {
         legacyUserService
             .getLegacyUser(email)
-            .ifPresent(legacyUser -> legacyUserService.deleteLegacyUser(email));
+            .ifPresent(() -> legacyUserService.deleteLegacyUser(email));
     }
 
 **2. This one declares an Optional return, but may still return null.**
