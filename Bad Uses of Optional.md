@@ -145,7 +145,7 @@ Simply renaming the parameter provides the same information as Optional. Before 
     someMethod(Optional.of(widget));          // Easy to make this mistake.
     someMethod(widget);                       // Simpler and can't be called incorrectly.
 
-So, instead of eliminating the possibility of NullPointerException, Optional acutally creates a new way to inroduce a bug.
+So once again, Optional creates a new way to inroduce a bug.
 
 And, before Optional was invented, there was already a widely-used way to specify a parameter as optional: Overloading!
 
