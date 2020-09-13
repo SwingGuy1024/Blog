@@ -234,7 +234,7 @@ But two simple changes return us to simplicty, and buy us robustness. First, don
 
 Here, the code and the method signatures are as simple as they can get. We never need to check for null. Also, simplicity buys us robustness. Optional is only used in the one place where it's actually needed, and it's used in a way that guarantees it can't be null. This is a good illustration of the KISS principle -- Keep it Simple, Stupid!
 
-The final irony in this example is this: In order to implement this in a way that guarantees it won't produce a NullPointerException, we actually had to remove Optional from the setter. The use of Optional here actually created a whole new way of generating NullPointerExceptions.
+The final irony in this example is this: In order to implement this in a way that guarantees it won't produce a NullPointerException, we actually had to remove Optional from the setter. So this is still another new way for Optional to cause an exception.
 
 (By the way, the possibility of the getter returning null should have been caught by unit tests. Your unit tests should always test for proper behavior when given bad input. Proper behavior for bad input usually means throwing an exception, so these tests are easy to write. But they often get overlooked.)
 
