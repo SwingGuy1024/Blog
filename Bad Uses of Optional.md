@@ -121,7 +121,7 @@ Prior to the invention of Optional, the author could have made it clear that the
     5   // ... (More code)
 This is cleaner and easier to call. The addition of Optional to the interface doesn't do much beyond giving us an alternate way to test for null, but which puts greater demands on the user.
 
-### Example 4: Seemingly Sensible Use
+### Example 4: Seemingly Sensible, but Pointless
 
 Here's a case where the use of Optional clearly does not mislead the user.
 
@@ -131,21 +131,24 @@ Here's a case where the use of Optional clearly does not mislead the user.
 
 Here, finally, we can say that Optional is adding clarity to the API. Use of null instead of a Widget instance is actually allowed. Here, the API does not mislead anyone. Of course, users who choose to use null must be careful not to call `Optional.of(widget)`. Instead, they should use `Optional.ofNullable(widget)` or `Optional.empty()`, but that's a fail-fast mistake, so it will get caught early. Unfortunately, so many developers wrap required parameters inside Optional, that the meaning of this occasional valid use will often get lost anyway.
 
-But before Optional was invented, there was already a widely-used way to specify a parameter as optional: Overloading!
-
-    private void someMethod() { someMethod(getDefaultWidget()); }
-    private void someMethod(Widget widget) { ... }
-
-Even if you insist on using a single method, there's a simpler way to let the user know that `widget` may be null, that doesn't add verbosity to the calling method:
+However, does Optional really add any value here? If the authors are using Optional to prevent a NullPointerException, this is completely unnecessary. The method body already prevents that. The method could have just as easily been written like this:
 
     1 private void someMethod(final Widget widgetOrNull) {
     2   final Widget widget = (widgetOrNull == null) ? getDefaultWidget() : widgetOrNull;
     3   // ... (More code)
 
+Either way, the parameter is null-safe, but the second way is both easier to call, and less error-prone. The user can't mistakenly call `Optional.of()`. Does the use of Optional force the caller to think about how to call it? Who cares? This method can't be called incorrectly! You dont need Optional to make this null-safe.
+
 Simply renaming the parameter provides the same information as Optional. Before Optional was invented, not many people did this, which is probably a shame, because it adds clarity without adding verbosity. Look at the two ways to call a method like this:
 
-    someMethod(Optional.ofNullable(widget));  // This is verbose, every time it gets called.
-    someMethod(widget);                       // This is both simpler and more reliable.
+    someMethod(Optional.ofNullable(widget));  // Verbose, each time it gets called.
+    someMethod(Optional.of(widget));          // Easy to make this mistake.
+    someMethod(widget);                       // Simpler and can't be called incorrectly.
+
+And, before Optional was invented, there was already a widely-used way to specify a parameter as optional: Overloading!
+
+    private void someMethod() { someMethod(getDefaultWidget()); }
+    private void someMethod(Widget widget) { ... }
 
 ### Example 5: Pointless
     1 private void someMethod(Optional<Widget> widgetOpt) {
