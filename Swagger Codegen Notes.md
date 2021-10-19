@@ -24,6 +24,8 @@ This applies to RESTful APIs, but not to data models. If a RESTful API has an op
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
+    
+If the value may be null, this would be more useful in the model than the API, but the Swagger spec doesn't even give us a way to specify which model elements may be null. Its use in APIs go against best practices for use of Optional, which should only be used as a return type. All of this makes the **Use Optional** option useless.
 
 *Advise:* Leave this off.
 #### Interface Only
