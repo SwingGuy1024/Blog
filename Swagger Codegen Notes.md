@@ -55,4 +55,4 @@ This added the following annotations to the model objects and its fields:
 	  ...
 I've never used XML with Swagger-generated APIs, but I would guess they apply when sending data as XML rather than JSON. I never do this, and it's now considered a security risk. XML has features that allow people to put executible code in an XML file. JSON is strictly data, so it offers no opportunity for hacking.
 
-*Advise:* Leave this off.
+*Advise:* Leave this off and never use XML for data transfer.
