@@ -32,12 +32,12 @@ A [blog post by Brian Goetz](http://mail.openjdk.java.net/pipermail/lambda-dev/2
 
 Brian Goetz shows how Optional is needed to support function chaining. It allows a chain of calls to continue even if a method returns null. This is used widely in functional programming, which was added to Java at the same time. That's the only place where I use it. It's used here in the `findFirst()` method, which, after all the filtering, might not even have a value. The `findFirst()` call, which returns `Optional<T>` replaced the `getFirst()` method from example A, which may return null. The Optional in turn lets us continue the chain of methods. Consequently, it makes sense to use Optional as a method return type, but only when null is a valid return value.
 
-Another place where it gets used is in the very useful `Optional.flatMap()` method, but not in the `Optional.map()` method. Here are their signatures:
+Here's another example, where optional is used as the return value of a function that is passed to a method. It shows up in the very useful `Optional.flatMap()` method, but not in the `Optional.map()` method. Here are their signatures:
 
     public <U> Optional<U> flatMap(Function<? super T, ? extends Optional<? extends U>> mapper)
     public <U> Optional<U> map(Function<? super T, ? extends U> mapper)
 
-The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. This is a useful usage pattern. It lets us limit the use of Optional to methods that might actually return null.
+The two methods do the same thing, but `flatMap()` takes a Function that returns Optional, while `map()` takes one that doesn't. This is a useful way to write an API. The two methods do the same thing, but the user has a choice. This is a useful usage pattern. It lets us limit the use of Optional to methods that might actually return null. 
 
 But all too often, it gets used where `Required` might be more descriptive. It's also used a lot of places where it really isn't very helpful, or it's so verbose that it makes the code clumsy. Rather than add to the endless debate about how to use it, I'd like to illustrate just how badly it's getting used. Here are some examples, all taken from actual production code.
 
