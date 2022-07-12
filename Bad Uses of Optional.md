@@ -152,9 +152,9 @@ So once again, Optional creates a new way to introduce a bug.
 And, before Optional was invented, there was already a widely-used way to specify a parameter as optional: Overloading!
 
     private void someMethod() { someMethod(getDefaultWidget()); }
-    private void someMethod(Widget widget) { ... }
+    private void someMethod(Widget requiredWidget) { ... }
 
-This also needs to be written carefully. This overloaded code can still lead to a NullPointerException, if someone passes null to the second method. But rather than requiring the calling method to test the value for null, the overloaded methods can instead be written this way:
+Of course, it's still possible for someone to call the second method with null. If this is a concern, you can still prevent it by writing your code this way:
 
     private void someMethod() { someMethod(null); }
     private void someMethod(final Widget widgetOrNull) {
@@ -162,7 +162,9 @@ This also needs to be written carefully. This overloaded code can still lead to 
       // ... (More code)
     }
 
-In short, Optional is a bad and ineffective alternative to carefully written code.
+Some people may find this strange. Maybe their right. But it works.
+
+In short, Optional is a bad and ineffective alternative to thoughtfully written code.
 
 ### Example 5: Pointless
     1 private void someMethod(Optional<Widget> widgetOpt) {
@@ -171,15 +173,17 @@ In short, Optional is a bad and ineffective alternative to carefully written cod
     4   }
     5   Widget widget = widgetOpt.get();
     6   widget.doSomething();
-    7   // ... (More code)
+    7 }
     
 Yeah. I've seen this. Once again, Optional means Required. And lines 2-4 are pointless. Before `Optional` was invented, this would have behaved exactly the same way:
 
     1 private void someMethod(Widget requiredWidget) {
     2   requiredWidget.doSomething();  // may throw NullPointerException
-    3   // ... (More code)
+    3 }
     
 This one also throws a NullPointerException if the parameter is null. But it takes one line to do what five lines did in the first case. It also gave us an opportunity to clarify the required nature of the parameter with a better name. Although "required" should be implicit.
+
+By the way, in spite of the possible NullPointerException, this is still a good way to write the method. It's fail fast, meaning that if a null value is passed, the code will immediately throw an exception, probably in the development phase where you can catch it and fix it before it reaches production.
 
 ### Example 6: Also Pointless
 
@@ -268,7 +272,8 @@ If you  insist on keeping an Optional member in the class, there's still a relia
     
 What these two implementations have in common is that they take total control over where and how Optional is instantiated. The user can't make the mistake of calling `Optional.of()` instead of `Optional.ofNullable()`.
 
-Some people will object, saying Optional can be used to force the user to think about whether the parameter is null or not. But why force the user? This way, the user doesn't have to worry about it. Either way, it works.
+Some people will object, saying an Optional parameter will force the user to think about whether the parameter is null or not. But why force the user? This way, the user doesn't have to worry about it. Either way, it works.
+
 ### Quick Takes:
 **1. This code is fine, but it doesn't take advantage of what Optional has to offer.**
 
