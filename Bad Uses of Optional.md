@@ -102,7 +102,7 @@ This also breaks the convention I discussed in the opening, where the user is gi
 
 ### Example 3: Misleading Parameters
 
-Many people have written guidelines recommending against using Optional as parameter methods, but people do it anyway. A common variation of the code in example 1 looks like this:
+Many people have written guidelines recommending against using Optional as parameter methods, but people do it anyway, saying that it forces the caller to think about whether the object is null. But I've never seen a case where it actually helps. Here's one way this goes wrong. (There are others, below.)
 
     1 private void someMethod(Optional<Widget> widgetOpt) {
     2   if (!widgetOpt.isPresent()) {
@@ -175,7 +175,7 @@ In short, Optional is a bad and ineffective alternative to thoughtfully written 
     6   widget.doSomething();
     7 }
     
-Yeah. I've seen this. Once again, Optional means Required. And lines 2-4 are pointless. Before `Optional` was invented, this would have behaved exactly the same way:
+Yeah. I've seen this. Once again, Optional means Required. And lines 2-4 are unnecessary. Before `Optional` was invented, this would have behaved exactly the same way:
 
     1 private void someMethod(Widget requiredWidget) {
     2   requiredWidget.doSomething();  // may throw NullPointerException
