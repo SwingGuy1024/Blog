@@ -319,8 +319,8 @@ Here's a simple requirement: Determine if a user's ticket (a String) is regular 
 
 But somebody got the idea that this task was a bit bigger. While I try to discourage overuse of Optional, I encourage the use of `enum,` but the `enum` in the code below is pointless. Its two values were used nowhere else in the project; nor was its big public static method, `getTicketType().` Even without Optional, this code would have been clumsy and verbose, but Optional only makes it worse. None of this extra code does anything more than my two simple methods above, which use the same API.
 
-    // This enum is an inner class of a larger class, which defines the two String Constants 
-    // used here. Their values aren't important. 
+    // This enum is an inner class of a larger class, which defines the two  "x_PREFIX" String
+    // constants used here. Their values aren't important. 
     public enum TicketType { // This public enum could have been private. It's not used anywhere else.
         LOCAL_ADMIN,
         USER;
